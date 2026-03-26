@@ -1,1 +1,21 @@
-<p>navbar works!</p>
+<header class="navbar">
+  <div class="navbar__left">
+    <h1 class="page-title">{{ pageTitle }}</h1>
+  </div>
+
+  <div class="navbar__right">
+    <!-- Points badge (household only) -->
+    <div class="points-badge" *ngIf="user()?.role === 'household'">
+      <span class="points-icon">💰</span>
+      <span class="points-value">{{ user()?.points ?? 0 }} pts</span>
+    </div>
+
+    <!-- User pill -->
+    <div class="user-pill" *ngIf="user()">
+      <div class="user-avatar">
+        {{ user()!.firstName[0] }}{{ user()!.lastName[0] }}
+      </div>
+      <span class="user-name">{{ user()!.firstName }}</span>
+    </div>
+  </div>
+</header>

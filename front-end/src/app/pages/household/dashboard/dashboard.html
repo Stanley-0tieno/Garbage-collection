@@ -1,0 +1,117 @@
+<!-- Loading -->
+<div class="loading-state" *ngIf="loading()">
+  <div class="spinner"></div>
+  <p>Loading your dashboard...</p>
+</div>
+
+<ng-container *ngIf="!loading()">
+
+  <!-- Page header -->
+  <div class="page-header">
+    <div>
+      <h1 class="page-title">Good day, {{ user()?.firstName }} 👋</h1>
+      <p class="page-subtitle">Here's an overview of your waste pickups</p>
+    </div>
+    <a routerLink="/household/schedule-pickup" class="btn-primary">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+      Schedule Pickup
+    </a>
+  </div>
+
+  <!-- Stats row -->
+  <div class="stats-grid">
+    <div class="stat-card stat-card--points">
+      <div class="stat-icon">💰</div>
+      <div class="stat-info">
+        <span class="stat-value">{{ stats().points }}</span>
+        <span class="stat-label">Total Points</span>
+      </div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-icon">📦</div>
+      <div class="stat-info">
+        <span class="stat-value">{{ stats().total }}</span>
+        <span class="stat-label">Total Pickups</span>
+      </div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-icon">⏳</div>
+      <div class="stat-info">
+        <span class="stat-value">{{ stats().pending }}</span>
+        <span class="stat-label">Pending</span>
+      </div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-icon">✅</div>
+      <div class="stat-info">
+        <span class="stat-value">{{ stats().completed }}</span>
+        <span class="stat-label">Completed</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Quick actions -->
+  <div class="section">
+    <h2 class="section-title">Quick Actions</h2>
+    <div class="actions-grid">
+      <a routerLink="/household/schedule-pickup" class="action-card">
+        <div class="action-icon action-icon--green">📅</div>
+        <div class="action-info">
+          <span class="action-title">Schedule Pickup</span>
+          <span class="action-desc">Book a new waste collection</span>
+        </div>
+        <svg class="action-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18l6-6-6-6"/></svg>
+      </a>
+      <a routerLink="/household/pickup-history" class="action-card">
+        <div class="action-icon action-icon--blue">📋</div>
+        <div class="action-info">
+          <span class="action-title">View History</span>
+          <span class="action-desc">See all your past pickups</span>
+        </div>
+        <svg class="action-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18l6-6-6-6"/></svg>
+      </a>
+    </div>
+  </div>
+
+  <!-- Recent pickups -->
+  <div class="section">
+    <div class="section-header">
+      <h2 class="section-title">Recent Pickups</h2>
+      <a routerLink="/household/pickup-history" class="see-all">View all</a>
+    </div>
+
+    <!-- Empty state -->
+    <div class="empty-state" *ngIf="recentPickups().length === 0">
+      <div class="empty-icon">🗑️</div>
+      <p class="empty-title">No pickups yet</p>
+      <p class="empty-desc">Schedule your first waste pickup to get started</p>
+      <a routerLink="/household/schedule-pickup" class="btn-primary btn-primary--sm">
+        Schedule Now
+      </a>
+    </div>
+
+    <!-- Pickups list -->
+    <div class="pickup-list" *ngIf="recentPickups().length > 0">
+      <div class="pickup-item" *ngFor="let pickup of recentPickups()">
+        <div class="pickup-left">
+          <div class="pickup-type-icon">♻️</div>
+          <div class="pickup-details">
+            <span class="pickup-type">{{ wasteLabel(pickup.wasteType) }}</span>
+            <span class="pickup-meta">
+              {{ pickup.date | date:'MMM d, y' }} · {{ pickup.address }}
+            </span>
+          </div>
+        </div>
+        <div class="pickup-right">
+          <span class="badge" [ngClass]="statusClass(pickup.status)">
+            {{ pickup.status }}
+          </span>
+          <span class="pickup-points" *ngIf="pickup.pointsEarned">
+            +{{ pickup.pointsEarned }} pts
+          </span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</ng-container>

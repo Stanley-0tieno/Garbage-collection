@@ -1,18 +1,18 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 
-import { Api } from './api';
+import { SchedulePickup } from './schedule-pickup';
 
-describe('Api', () => {
-  let component: Api;
-  let fixture: ComponentFixture<Api>;
+describe('SchedulePickup', () => {
+  let component: SchedulePickup;
+  let fixture: ComponentFixture<SchedulePickup>;
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [Api]
+      imports: [SchedulePickup]
     })
     .compileComponents();
 
-    fixture = TestBed.createComponent(Api);
+    fixture = TestBed.createComponent(SchedulePickup);
     component = fixture.componentInstance;
     fixture.detectChanges();
   });

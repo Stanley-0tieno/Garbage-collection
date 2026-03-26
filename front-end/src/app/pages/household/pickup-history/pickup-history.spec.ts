@@ -1,18 +1,18 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 
-import { Collectors } from './collectors';
+import { PickupHistory } from './pickup-history';
 
-describe('Collectors', () => {
-  let component: Collectors;
-  let fixture: ComponentFixture<Collectors>;
+describe('PickupHistory', () => {
+  let component: PickupHistory;
+  let fixture: ComponentFixture<PickupHistory>;
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [Collectors]
+      imports: [PickupHistory]
     })
     .compileComponents();
 
-    fixture = TestBed.createComponent(Collectors);
+    fixture = TestBed.createComponent(PickupHistory);
     component = fixture.componentInstance;
     fixture.detectChanges();
   });

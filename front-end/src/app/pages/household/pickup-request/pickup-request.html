@@ -1,0 +1,88 @@
+<div class="loading-state" *ngIf="loading()">
+  <div class="spinner"></div>
+  <p>Loading pickup requests...</p>
+</div>
+
+<ng-container *ngIf="!loading()">
+
+  <div class="page-header">
+    <div>
+      <h1 class="page-title">Pickup Requests</h1>
+      <p class="page-subtitle">Manage and update all waste collection requests</p>
+    </div>
+  </div>
+
+  <!-- Filter tabs -->
+  <div class="filter-tabs">
+    <button class="filter-tab"
+      *ngFor="let f of filters"
+      [class.filter-tab--active]="activeFilter() === f.value"
+      (click)="setFilter(f.value)">
+      {{ f.label }}
+    </button>
+  </div>
+
+  <!-- Empty state -->
+  <div class="empty-state" *ngIf="filtered().length === 0">
+    <div class="empty-icon">📭</div>
+    <p class="empty-title">No requests found</p>
+    <p class="empty-desc">No pickup requests match the selected filter.</p>
+  </div>
+
+  <!-- Request cards -->
+  <div class="requests-grid" *ngIf="filtered().length > 0">
+    <div class="request-card" *ngFor="let pickup of filtered()">
+
+      <div class="card-header">
+        <div class="waste-type">
+          <span>{{ wasteIcon(pickup.wasteType) }}</span>
+          <span class="waste-label">{{ wasteLabel(pickup.wasteType) }}</span>
+        </div>
+        <span class="badge" [ngClass]="statusClass(pickup.status)">{{ pickup.status }}</span>
+      </div>
+
+      <div class="card-body">
+        <div class="detail-row">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+          <span>{{ pickup.date | date:'EEEE, MMM d, y' }}</span>
+        </div>
+        <div class="detail-row">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/></svg>
+          <span>{{ pickup.address }}</span>
+        </div>
+        <div class="detail-row" *ngIf="pickup.notes">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+          <span class="notes-text">{{ pickup.notes }}</span>
+        </div>
+        <div class="detail-row" *ngIf="pickup.completedAt">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M22 11.08V12a10 10 0 11-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+          <span>Completed {{ pickup.completedAt | date:'MMM d, y' }}</span>
+        </div>
+      </div>
+
+      <!-- Action buttons -->
+      <div class="card-actions" *ngIf="pickup.status !== 'COMPLETED' && pickup.status !== 'CANCELLED'">
+        <button class="btn-assign"
+          *ngIf="pickup.status === 'PENDING'"
+          [disabled]="updatingId() === pickup.id"
+          (click)="updateStatus(pickup, 'ASSIGNED')">
+          <span *ngIf="updatingId() !== pickup.id">Accept Request</span>
+          <span *ngIf="updatingId() === pickup.id" class="spinner spinner--sm"></span>
+        </button>
+        <button class="btn-complete"
+          *ngIf="pickup.status === 'ASSIGNED'"
+          [disabled]="updatingId() === pickup.id"
+          (click)="updateStatus(pickup, 'COMPLETED')">
+          <span *ngIf="updatingId() !== pickup.id">Mark as Completed</span>
+          <span *ngIf="updatingId() === pickup.id" class="spinner spinner--sm"></span>
+        </button>
+      </div>
+
+      <div class="card-completed" *ngIf="pickup.status === 'COMPLETED'">
+        ✅ Pickup completed · +{{ pickup.pointsEarned ?? 50 }} pts awarded
+      </div>
+
+    </div>
+  </div>
+
+</ng-container>

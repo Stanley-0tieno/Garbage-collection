@@ -1,0 +1,188 @@
+.loading-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 60vh;
+  gap: 1rem;
+  color: #6b7280;
+  font-size: .9rem;
+}
+
+.spinner {
+  width: 36px; height: 36px;
+  border: 3px solid #e5e7eb;
+  border-top-color: #16a34a;
+  border-radius: 50%;
+  animation: spin .8s linear infinite;
+}
+
+@keyframes spin { to { transform: rotate(360deg); } }
+
+.page-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  margin-bottom: 1.5rem;
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+
+.page-title {
+  font-family: var(--font-display);
+  font-size: 1.6rem;
+  font-weight: 700;
+  color: #111827;
+  letter-spacing: -.3px;
+  margin-bottom: .25rem;
+}
+
+.page-subtitle { font-size: .9rem; color: #6b7280; }
+
+.btn-primary {
+  display: inline-flex;
+  align-items: center;
+  gap: .5rem;
+  padding: .65rem 1.25rem;
+  background: linear-gradient(135deg, #16a34a, #22c55e);
+  color: #fff;
+  font-size: .875rem;
+  font-weight: 600;
+  border-radius: 10px;
+  border: none;
+  cursor: pointer;
+  text-decoration: none;
+  box-shadow: 0 3px 12px rgba(22,163,74,.3);
+  transition: opacity .2s, transform .15s;
+  svg { width: 16px; height: 16px; }
+  &:hover { opacity: .9; transform: translateY(-1px); }
+  &--sm { padding: .5rem 1rem; font-size: .825rem; margin-top: .75rem; }
+}
+
+// ── Filter tabs ────────────────────────────────────────────
+.filter-tabs {
+  display: flex;
+  gap: .4rem;
+  margin-bottom: 1.5rem;
+  flex-wrap: wrap;
+}
+
+.filter-tab {
+  padding: .45rem 1rem;
+  border-radius: 999px;
+  border: 1.5px solid #e5e7eb;
+  background: #fff;
+  font-size: .825rem;
+  font-weight: 500;
+  color: #6b7280;
+  cursor: pointer;
+  transition: all .2s;
+
+  &:hover { border-color: #86efac; color: #16a34a; }
+
+  &--active {
+    background: #16a34a;
+    border-color: #16a34a;
+    color: #fff;
+  }
+}
+
+// ── Empty state ────────────────────────────────────────────
+.empty-state {
+  background: #fff;
+  border: 1px dashed #e5e7eb;
+  border-radius: 16px;
+  padding: 3.5rem 2rem;
+  text-align: center;
+}
+
+.empty-icon { font-size: 2.5rem; margin-bottom: .75rem; }
+.empty-title { font-size: 1rem; font-weight: 600; color: #374151; margin-bottom: .35rem; }
+.empty-desc  { font-size: .875rem; color: #9ca3af; }
+
+// ── Pickup grid ────────────────────────────────────────────
+.pickup-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 1rem;
+}
+
+.pickup-card {
+  background: #fff;
+  border: 1px solid #f3f4f6;
+  border-radius: 16px;
+  overflow: hidden;
+  box-shadow: 0 1px 8px rgba(0,0,0,.05);
+  transition: transform .2s, box-shadow .2s;
+
+  &:hover { transform: translateY(-2px); box-shadow: 0 4px 20px rgba(0,0,0,.08); }
+}
+
+.pickup-card__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1rem 1.25rem;
+  border-bottom: 1px solid #f9fafb;
+}
+
+.pickup-type {
+  display: flex;
+  align-items: center;
+  gap: .6rem;
+}
+
+.type-icon  { font-size: 1.3rem; }
+.type-label { font-size: .9rem; font-weight: 600; color: #111827; }
+
+.pickup-card__body {
+  padding: 1rem 1.25rem;
+  display: flex;
+  flex-direction: column;
+  gap: .65rem;
+}
+
+.pickup-detail {
+  display: flex;
+  align-items: flex-start;
+  gap: .6rem;
+  font-size: .85rem;
+  color: #4b5563;
+
+  svg { width: 15px; height: 15px; color: #9ca3af; flex-shrink: 0; margin-top: 1px; }
+}
+
+.notes-text {
+  font-style: italic;
+  color: #9ca3af;
+  font-size: .825rem;
+}
+
+.pickup-card__footer {
+  padding: .75rem 1.25rem;
+  background: #f0fdf4;
+  border-top: 1px solid #dcfce7;
+}
+
+.points-earned {
+  font-size: .825rem;
+  font-weight: 700;
+  color: #15803d;
+}
+
+// ── Status badges ──────────────────────────────────────────
+.badge {
+  display: inline-flex;
+  align-items: center;
+  padding: .25rem .7rem;
+  border-radius: 999px;
+  font-size: .72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: .04em;
+
+  &--pending   { background: #fef9c3; color: #a16207; }
+  &--assigned  { background: #dbeafe; color: #1d4ed8; }
+  &--completed { background: #dcfce7; color: #15803d; }
+  &--cancelled { background: #fee2e2; color: #dc2626; }
+}

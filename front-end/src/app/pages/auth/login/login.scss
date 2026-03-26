@@ -1,0 +1,310 @@
+@use 'sass:color';
+
+// ── Layout ─────────────────────────────────────────────────
+.auth-page {
+  display: flex;
+  min-height: 100vh;
+}
+
+// ── Brand Panel ────────────────────────────────────────────
+.auth-panel--brand {
+  flex: 0 0 42%;
+  background: linear-gradient(145deg, #15803d 0%, #16a34a 45%, #22c55e 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  overflow: hidden;
+  padding: 3rem;
+
+  @media (max-width: 768px) { display: none; }
+}
+
+.brand-content {
+  position: relative;
+  z-index: 2;
+  color: #fff;
+  max-width: 360px;
+}
+
+.brand-logo {
+  width: 64px;
+  height: 64px;
+  background: rgba(255,255,255,.15);
+  border-radius: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 2rem;
+  margin-bottom: 1.5rem;
+  backdrop-filter: blur(8px);
+}
+
+.brand-name {
+  font-family: var(--font-display);
+  font-size: 2.75rem;
+  font-weight: 700;
+  line-height: 1.1;
+  margin-bottom: 1rem;
+  letter-spacing: -.5px;
+
+  span {
+    color: #bbf7d0;
+    font-style: italic;
+  }
+}
+
+.brand-tagline {
+  font-size: 1.05rem;
+  line-height: 1.65;
+  opacity: .85;
+  margin-bottom: 2.5rem;
+}
+
+.brand-features {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: .85rem;
+
+  li {
+    display: flex;
+    align-items: center;
+    gap: .75rem;
+    font-size: .95rem;
+    opacity: .9;
+    font-weight: 500;
+  }
+}
+
+.feature-icon { font-size: 1.2rem; }
+
+// decorative circles
+.brand-bg-circles {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+}
+
+.circle {
+  position: absolute;
+  border-radius: 50%;
+  background: rgba(255,255,255,.06);
+
+  &--1 { width: 340px; height: 340px; top: -100px; right: -80px; }
+  &--2 { width: 220px; height: 220px; bottom: 60px; left: -60px; }
+  &--3 { width: 120px; height: 120px; bottom: 200px; right: 40px; background: rgba(255,255,255,.1); }
+}
+
+// ── Form Panel ─────────────────────────────────────────────
+.auth-panel--form {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem;
+  background: #f9fafb;
+}
+
+.form-card {
+  width: 100%;
+  max-width: 420px;
+  background: #fff;
+  border-radius: 24px;
+  padding: 2.5rem;
+  box-shadow: 0 4px 32px rgba(0,0,0,.07), 0 1px 4px rgba(0,0,0,.04);
+
+  @media (max-width: 480px) {
+    padding: 1.75rem 1.25rem;
+    border-radius: 16px;
+  }
+}
+
+// ── Form Header ────────────────────────────────────────────
+.form-header {
+  margin-bottom: 1.75rem;
+
+  h2 {
+    font-family: var(--font-display);
+    font-size: 1.85rem;
+    font-weight: 700;
+    color: #111827;
+    margin-bottom: .35rem;
+    letter-spacing: -.4px;
+  }
+
+  p {
+    font-size: .9rem;
+    color: #6b7280;
+  }
+}
+
+// ── Alert ──────────────────────────────────────────────────
+.alert {
+  display: flex;
+  align-items: center;
+  gap: .6rem;
+  padding: .75rem 1rem;
+  border-radius: 10px;
+  font-size: .875rem;
+  font-weight: 500;
+  margin-bottom: 1.25rem;
+
+  svg { width: 18px; height: 18px; flex-shrink: 0; }
+
+  &--error {
+    background: #fef2f2;
+    color: #dc2626;
+    border: 1px solid #fecaca;
+  }
+}
+
+// ── Fields ─────────────────────────────────────────────────
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: .45rem;
+  margin-bottom: 1.1rem;
+
+  label {
+    font-size: .825rem;
+    font-weight: 600;
+    color: #374151;
+    letter-spacing: .01em;
+  }
+}
+
+.input-wrap {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.input-icon {
+  position: absolute;
+  left: 13px;
+  width: 17px;
+  height: 17px;
+  color: #9ca3af;
+  pointer-events: none;
+}
+
+input[type="email"],
+input[type="password"],
+input[type="text"] {
+  width: 100%;
+  padding: .7rem 2.75rem .7rem 2.5rem;
+  border: 1.5px solid #e5e7eb;
+  border-radius: 10px;
+  font-size: .925rem;
+  color: #111827;
+  background: #fafafa;
+  transition: border-color .2s, box-shadow .2s, background .2s;
+  outline: none;
+
+  &::placeholder { color: #d1d5db; }
+
+  &:focus {
+    border-color: #16a34a;
+    background: #fff;
+    box-shadow: 0 0 0 3px rgba(22,163,74,.12);
+  }
+}
+
+.field--error input {
+  border-color: #ef4444;
+  &:focus { box-shadow: 0 0 0 3px rgba(239,68,68,.12); }
+}
+
+.field-error {
+  font-size: .78rem;
+  color: #ef4444;
+  font-weight: 500;
+}
+
+.input-toggle {
+  position: absolute;
+  right: 12px;
+  display: flex;
+  align-items: center;
+  color: #9ca3af;
+  padding: 2px;
+  transition: color .2s;
+  svg { width: 18px; height: 18px; }
+  &:hover { color: #16a34a; }
+}
+
+// ── Form Meta ──────────────────────────────────────────────
+.form-meta {
+  display: flex;
+  justify-content: flex-end;
+  margin-bottom: 1.5rem;
+  margin-top: -.25rem;
+}
+
+.forgot-link {
+  font-size: .82rem;
+  color: #16a34a;
+  font-weight: 500;
+  transition: color .2s;
+  &:hover { color: #15803d; }
+}
+
+// ── Submit Button ──────────────────────────────────────────
+.btn-submit {
+  width: 100%;
+  padding: .8rem;
+  background: linear-gradient(135deg, #16a34a, #22c55e);
+  color: #fff;
+  font-size: .95rem;
+  font-weight: 600;
+  border-radius: 12px;
+  border: none;
+  cursor: pointer;
+  transition: opacity .2s, transform .15s, box-shadow .2s;
+  box-shadow: 0 4px 16px rgba(22,163,74,.35);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 46px;
+  letter-spacing: .01em;
+
+  &:hover:not(:disabled) {
+    opacity: .92;
+    transform: translateY(-1px);
+    box-shadow: 0 6px 20px rgba(22,163,74,.4);
+  }
+
+  &:active:not(:disabled) { transform: translateY(0); }
+
+  &:disabled { opacity: .65; cursor: not-allowed; }
+}
+
+// ── Spinner ────────────────────────────────────────────────
+.spinner {
+  width: 20px;
+  height: 20px;
+  border: 2.5px solid rgba(255,255,255,.35);
+  border-top-color: #fff;
+  border-radius: 50%;
+  animation: spin .7s linear infinite;
+}
+
+@keyframes spin { to { transform: rotate(360deg); } }
+
+// ── Footer ─────────────────────────────────────────────────
+.form-footer {
+  text-align: center;
+  margin-top: 1.5rem;
+  font-size: .875rem;
+  color: #6b7280;
+}
+
+.link-accent {
+  color: #16a34a;
+  font-weight: 600;
+  margin-left: .25rem;
+  transition: color .2s;
+  &:hover { color: #15803d; }
+}

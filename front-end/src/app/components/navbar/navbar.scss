@@ -1,0 +1,80 @@
+.navbar {
+  height: 64px;
+  background: #fff;
+  border-bottom: 1px solid #f0f0f0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 2rem;
+  flex-shrink: 0;
+  box-shadow: 0 1px 8px rgba(0,0,0,.04);
+}
+
+.navbar__left {
+  display: flex;
+  align-items: center;
+}
+
+.page-title {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: #111827;
+  letter-spacing: -.2px;
+}
+
+.navbar__right {
+  display: flex;
+  align-items: center;
+  gap: .75rem;
+}
+
+// ── Points badge ───────────────────────────────────────────
+.points-badge {
+  display: flex;
+  align-items: center;
+  gap: .4rem;
+  background: #f0fdf4;
+  border: 1px solid #bbf7d0;
+  padding: .35rem .75rem;
+  border-radius: 999px;
+
+  .points-icon { font-size: .9rem; }
+
+  .points-value {
+    font-size: .825rem;
+    font-weight: 700;
+    color: #16a34a;
+  }
+}
+
+// ── User pill ──────────────────────────────────────────────
+.user-pill {
+  display: flex;
+  align-items: center;
+  gap: .5rem;
+  padding: .3rem .75rem .3rem .3rem;
+  background: #f9fafb;
+  border: 1px solid #e5e7eb;
+  border-radius: 999px;
+  cursor: default;
+}
+
+.user-avatar {
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #16a34a, #22c55e);
+  color: #fff;
+  font-size: .72rem;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  letter-spacing: .03em;
+}
+
+.user-name {
+  font-size: .85rem;
+  font-weight: 600;
+  color: #374151;
+}

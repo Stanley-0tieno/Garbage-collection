@@ -1,0 +1,100 @@
+<!-- Page header -->
+<div class="page-header">
+  <a routerLink="/household/dashboard" class="back-link">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 12H5M12 5l-7 7 7 7"/></svg>
+    Back to Dashboard
+  </a>
+  <h1 class="page-title">Schedule a Pickup</h1>
+  <p class="page-subtitle">Fill in the details below to book your waste collection</p>
+</div>
+
+<!-- Success -->
+<div class="alert alert--success" *ngIf="successMessage()">
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 11-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+  {{ successMessage() }}
+</div>
+
+<!-- Error -->
+<div class="alert alert--error" *ngIf="errorMessage()">
+  <svg viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/></svg>
+  {{ errorMessage() }}
+</div>
+
+<form [formGroup]="form" (ngSubmit)="submit()" novalidate>
+  <div class="form-card">
+
+    <!-- Waste type -->
+    <div class="form-section">
+      <label class="form-label">Waste Type <span class="required">*</span></label>
+      <p class="form-hint">Select the type of waste to be collected</p>
+      <div class="waste-grid">
+        <button type="button"
+          class="waste-option"
+          *ngFor="let option of wasteOptions"
+          [class.waste-option--active]="wasteType.value === option.value"
+          (click)="selectWaste(option.value)">
+          <span class="waste-icon">{{ option.icon }}</span>
+          <span class="waste-label">{{ option.label }}</span>
+          <span class="waste-desc">{{ option.desc }}</span>
+        </button>
+      </div>
+      <span class="field-error" *ngIf="wasteType.invalid && wasteType.touched">
+        Please select a waste type
+      </span>
+    </div>
+
+    <!-- Date -->
+    <div class="form-section">
+      <div class="field" [class.field--error]="date.invalid && date.touched">
+        <label class="form-label" for="date">Pickup Date <span class="required">*</span></label>
+        <p class="form-hint">Choose a date for collection (from tomorrow onwards)</p>
+        <div class="input-wrap">
+          <svg class="input-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+          <input id="date" type="date" formControlName="date" [min]="minDate" />
+        </div>
+        <span class="field-error" *ngIf="date.invalid && date.touched">
+          Please select a pickup date
+        </span>
+      </div>
+    </div>
+
+    <!-- Address -->
+    <div class="form-section">
+      <div class="field" [class.field--error]="address.invalid && address.touched">
+        <label class="form-label" for="address">Pickup Address <span class="required">*</span></label>
+        <p class="form-hint">Enter the address where waste should be collected</p>
+        <div class="input-wrap">
+          <svg class="input-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/></svg>
+          <input id="address" type="text" formControlName="address"
+                 placeholder="e.g. 14 Moi Avenue, Nairobi" />
+        </div>
+        <span class="field-error" *ngIf="address.invalid && address.touched">
+          Please enter a pickup address
+        </span>
+      </div>
+    </div>
+
+    <!-- Notes -->
+    <div class="form-section">
+      <div class="field">
+        <label class="form-label" for="notes">Additional Notes <span class="optional">(optional)</span></label>
+        <p class="form-hint">Any special instructions for the collector</p>
+        <textarea id="notes" formControlName="notes" rows="3"
+                  placeholder="e.g. Gate code is 1234, leave bags by the gate..."></textarea>
+      </div>
+    </div>
+
+    <!-- Actions -->
+    <div class="form-actions">
+      <a routerLink="/household/dashboard" class="btn-cancel">Cancel</a>
+      <button type="submit" class="btn-submit" [disabled]="loading()">
+        <span *ngIf="!loading()">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+          Schedule Pickup
+        </span>
+        <span *ngIf="loading()" class="spinner"></span>
+      </button>
+    </div>
+
+  </div>
+</form>

@@ -1,11 +1,17 @@
-import { Component } from '@angular/core';
+import { Component, inject, Input } from '@angular/core';
+import { CommonModule } from '@angular/common';
+import { AuthService } from '../../services/api/auth.service';
 
 @Component({
   selector: 'app-navbar',
-  imports: [],
+  standalone: true,
+  imports: [CommonModule],
   templateUrl: './navbar.html',
-  styleUrl: './navbar.scss',
+  styleUrl: './navbar.scss'
 })
-export class Navbar {
+export class NavbarComponent {
+  @Input() pageTitle = '';
 
+  private auth = inject(AuthService);
+  readonly user = this.auth.currentUser;
 }

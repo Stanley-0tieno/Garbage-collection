@@ -1,0 +1,86 @@
+<!-- Loading -->
+<div class="loading-state" *ngIf="loading()">
+  <div class="spinner"></div>
+  <p>Loading pickup history...</p>
+</div>
+
+<ng-container *ngIf="!loading()">
+
+  <!-- Page header -->
+  <div class="page-header">
+    <div>
+      <h1 class="page-title">Pickup History</h1>
+      <p class="page-subtitle">All your waste collection requests</p>
+    </div>
+    <a routerLink="/household/schedule-pickup" class="btn-primary">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+      New Pickup
+    </a>
+  </div>
+
+  <!-- Filter tabs -->
+  <div class="filter-tabs">
+    <button
+      class="filter-tab"
+      *ngFor="let f of filters"
+      [class.filter-tab--active]="activeFilter() === f.value"
+      (click)="setFilter(f.value)">
+      {{ f.label }}
+    </button>
+  </div>
+
+  <!-- Empty state -->
+  <div class="empty-state" *ngIf="filtered().length === 0">
+    <div class="empty-icon">📭</div>
+    <p class="empty-title">No pickups found</p>
+    <p class="empty-desc">
+      {{ activeFilter() === 'ALL' ? 'You haven\'t scheduled any pickups yet.' : 'No pickups with this status.' }}
+    </p>
+    <a routerLink="/household/schedule-pickup" class="btn-primary btn-primary--sm" *ngIf="activeFilter() === 'ALL'">
+      Schedule Your First Pickup
+    </a>
+  </div>
+
+  <!-- Pickup cards -->
+  <div class="pickup-grid" *ngIf="filtered().length > 0">
+    <div class="pickup-card" *ngFor="let pickup of filtered()">
+
+      <div class="pickup-card__header">
+        <div class="pickup-type">
+          <span class="type-icon">{{ wasteIcon(pickup.wasteType) }}</span>
+          <span class="type-label">{{ wasteLabel(pickup.wasteType) }}</span>
+        </div>
+        <span class="badge" [ngClass]="statusClass(pickup.status)">
+          {{ pickup.status }}
+        </span>
+      </div>
+
+      <div class="pickup-card__body">
+        <div class="pickup-detail">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+          <span>{{ pickup.date | date:'EEEE, MMM d, y' }}</span>
+        </div>
+        <div class="pickup-detail">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/></svg>
+          <span>{{ pickup.address }}</span>
+        </div>
+        <div class="pickup-detail" *ngIf="pickup.collectorName">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+          <span>{{ pickup.collectorName }}</span>
+        </div>
+        <div class="pickup-detail" *ngIf="pickup.notes">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+          <span class="notes-text">{{ pickup.notes }}</span>
+        </div>
+      </div>
+
+      <div class="pickup-card__footer" *ngIf="pickup.pointsEarned">
+        <span class="points-earned">
+          🏆 +{{ pickup.pointsEarned }} points earned
+        </span>
+      </div>
+
+    </div>
+  </div>
+
+</ng-container>

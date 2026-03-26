@@ -1,0 +1,124 @@
+<div class="auth-page">
+
+  <!-- Brand panel -->
+  <div class="auth-panel auth-panel--brand">
+    <div class="brand-content">
+      <div class="brand-logo">🌿</div>
+      <h1 class="brand-name">Waste<span>2</span>Wealth</h1>
+      <p class="brand-tagline">Join thousands turning waste<br>into a cleaner, greener future.</p>
+      <ul class="brand-features">
+        <li><span>♻️</span> Free to join — household or collector</li>
+        <li><span>📍</span> Location-based pickup matching</li>
+        <li><span>📊</span> Track your environmental impact</li>
+      </ul>
+    </div>
+    <div class="brand-bg-circles">
+      <span class="circle circle--1"></span>
+      <span class="circle circle--2"></span>
+      <span class="circle circle--3"></span>
+    </div>
+  </div>
+
+  <!-- Form panel -->
+  <div class="auth-panel auth-panel--form">
+    <div class="form-card">
+
+      <div class="form-header">
+        <h2>Create account</h2>
+        <p>Join the Waste2Wealth community today</p>
+      </div>
+
+      <!-- Error -->
+      <div class="alert alert--error" *ngIf="errorMessage()">
+        <svg viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/></svg>
+        {{ errorMessage() }}
+      </div>
+
+      <form [formGroup]="form" (ngSubmit)="submit()" novalidate>
+
+        <!-- Role selector -->
+        <div class="role-selector">
+          <button type="button" class="role-btn"
+            [class.role-btn--active]="role.value === 'household'"
+            (click)="selectRole('household')">
+            <span class="role-icon">🏠</span>
+            <span class="role-label">Household</span>
+            <span class="role-desc">I need waste picked up</span>
+          </button>
+          <button type="button" class="role-btn"
+            [class.role-btn--active]="role.value === 'collector'"
+            (click)="selectRole('collector')">
+            <span class="role-icon">🚛</span>
+            <span class="role-label">Collector</span>
+            <span class="role-desc">I collect & recycle waste</span>
+          </button>
+        </div>
+
+        <!-- Name row -->
+        <div class="field-row">
+          <div class="field" [class.field--error]="firstName.invalid && firstName.touched">
+            <label>First name</label>
+            <input type="text" formControlName="firstName" placeholder="Jane" />
+            <span class="field-error" *ngIf="firstName.invalid && firstName.touched">Required</span>
+          </div>
+          <div class="field" [class.field--error]="lastName.invalid && lastName.touched">
+            <label>Last name</label>
+            <input type="text" formControlName="lastName" placeholder="Doe" />
+            <span class="field-error" *ngIf="lastName.invalid && lastName.touched">Required</span>
+          </div>
+        </div>
+
+        <!-- Email -->
+        <div class="field" [class.field--error]="email.invalid && email.touched">
+          <label>Email address</label>
+          <div class="input-wrap">
+            <svg class="input-icon" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M2.5 6.5l7.5 5 7.5-5M3 5h14a1 1 0 011 1v8a1 1 0 01-1 1H3a1 1 0 01-1-1V6a1 1 0 011-1z"/></svg>
+            <input type="email" formControlName="email" placeholder="you@example.com" />
+          </div>
+          <span class="field-error" *ngIf="email.invalid && email.touched">
+            {{ email.errors?.['required'] ? 'Email is required' : 'Enter a valid email' }}
+          </span>
+        </div>
+
+        <!-- Phone -->
+        <div class="field" [class.field--error]="phone.invalid && phone.touched">
+          <label>Phone number</label>
+          <div class="input-wrap">
+            <svg class="input-icon" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M3 5a2 2 0 012-2h1.5a1 1 0 01.95.68l1 3a1 1 0 01-.27 1.05l-1.1 1.1a11 11 0 004.07 4.07l1.1-1.1a1 1 0 011.05-.27l3 1a1 1 0 01.68.95V15a2 2 0 01-2 2A13 13 0 013 5z"/></svg>
+            <input type="tel" formControlName="phone" placeholder="+254 700 000 000" />
+          </div>
+          <span class="field-error" *ngIf="phone.invalid && phone.touched">Enter a valid phone number</span>
+        </div>
+
+        <!-- Password -->
+        <div class="field" [class.field--error]="password.invalid && password.touched">
+          <label>Password</label>
+          <div class="input-wrap">
+            <svg class="input-icon" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="9" width="14" height="10" rx="2"/><path d="M7 9V6a3 3 0 016 0v3"/></svg>
+            <input [type]="showPassword() ? 'text' : 'password'" formControlName="password" placeholder="Min. 6 characters" />
+            <button type="button" class="input-toggle" (click)="togglePassword()">
+              <svg *ngIf="!showPassword()" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M1 10s3.5-6 9-6 9 6 9 6-3.5 6-9 6-9-6-9-6z"/><circle cx="10" cy="10" r="3"/></svg>
+              <svg *ngIf="showPassword()" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M3 3l14 14M8.46 8.52A3 3 0 0013.5 13.5M6.1 6.1C3.8 7.5 2 10 2 10s3 5.5 8 5.5c1.5 0 2.9-.4 4.1-1.1M10 5c4.5.3 7.2 4.5 7.9 5.4"/></svg>
+            </button>
+          </div>
+          <span class="field-error" *ngIf="password.invalid && password.touched">
+            {{ password.errors?.['required'] ? 'Password is required' : 'At least 6 characters' }}
+          </span>
+        </div>
+
+        <button type="submit" class="btn-submit" [disabled]="loading()">
+          <span *ngIf="!loading()">Create Account</span>
+          <span *ngIf="loading()" class="spinner"></span>
+        </button>
+
+      </form>
+
+      <p class="form-footer">
+        Already have an account?
+        <a routerLink="/auth/login" class="link-accent">Sign in</a>
+      </p>
+
+    </div>
+  </div>
+
+</div>
