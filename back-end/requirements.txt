@@ -1,0 +1,9 @@
+fastapi>=0.115
+uvicorn[standard]>=0.29
+sqlalchemy>=2.0
+aiosqlite          # swap to asyncpg for PostgreSQL
+pydantic[email]>=2.0
+pydantic-settings>=2.0
+python-jose[cryptography]
+passlib[bcrypt]
+python-dotenv
