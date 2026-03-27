@@ -2,8 +2,8 @@ import { Component, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
-import { AuthService } from '.././../../services/api/auth.service';
-import { UserRole } from '.././../../models/user.model';
+import { AuthService } from '../../../services/api/auth.service';
+import { UserRole } from '../../../models/user.model';
 
 @Component({
   selector: 'app-signup',
@@ -27,7 +27,7 @@ export class SignupComponent {
     phone:     ['', [Validators.required, Validators.pattern(/^[+\d\s\-()]{7,15}$/)]],
     role:      ['household' as UserRole, Validators.required],
     password:  ['', [Validators.required, Validators.minLength(6)]]
-  });
+  });  // ← fb.group() ends cleanly here, nothing after it
 
   get firstName() { return this.form.get('firstName')!; }
   get lastName()  { return this.form.get('lastName')!; }
@@ -47,7 +47,11 @@ export class SignupComponent {
 
     this.auth.signup(this.form.value).subscribe({
       error: err => {
-        this.errorMessage.set(err?.error?.message ?? 'Something went wrong. Please try again.');
+        // FastAPI puts error text in `detail`, not `message`
+        const msg = err?.error?.detail
+                 ?? err?.error?.message
+                 ?? 'Something went wrong. Please try again.';
+        this.errorMessage.set(msg);
         this.loading.set(false);
       }
     });

@@ -1,6 +1,6 @@
-import { Component, inject, signal } from '@angular/core';
+import { Component, inject, signal, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { RouterModule } from '@angular/router';
+import { RouterModule, ActivatedRoute } from '@angular/router';
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
 import { AuthService } from '.././../../services/api/auth.service';
 
@@ -11,13 +11,15 @@ import { AuthService } from '.././../../services/api/auth.service';
   templateUrl: './login.html',
   styleUrl: './login.scss'
 })
-export class LoginComponent {
-  private fb   = inject(FormBuilder);
-  private auth = inject(AuthService);
+export class LoginComponent implements OnInit {
+  private fb    = inject(FormBuilder);
+  private auth  = inject(AuthService);
+  private route = inject(ActivatedRoute);
 
-  loading      = signal(false);
-  errorMessage = signal('');
-  showPassword = signal(false);
+  loading         = signal(false);
+  errorMessage    = signal('');
+  showPassword    = signal(false);
+  showEmailBanner = signal(false);
 
   form: FormGroup = this.fb.group({
     email:    ['', [Validators.required, Validators.email]],
@@ -27,16 +29,25 @@ export class LoginComponent {
   get email()    { return this.form.get('email')!; }
   get password() { return this.form.get('password')!; }
 
+  ngOnInit(): void {
+    this.route.queryParams.subscribe(params => {
+      if (params['registered'] === 'true') this.showEmailBanner.set(true);
+    });
+  }
+
   togglePassword() { this.showPassword.update(v => !v); }
 
   submit(): void {
     if (this.form.invalid) { this.form.markAllAsTouched(); return; }
     this.loading.set(true);
     this.errorMessage.set('');
+    this.showEmailBanner.set(false);
 
     this.auth.login(this.form.value).subscribe({
       error: err => {
-        this.errorMessage.set(err?.error?.message ?? 'Invalid email or password.');
+        this.errorMessage.set(
+          err?.error?.detail ?? err?.error?.message ?? 'Invalid email or password.'
+        );
         this.loading.set(false);
       }
     });
