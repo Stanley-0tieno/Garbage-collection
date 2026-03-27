@@ -62,6 +62,9 @@ def _send_smtp(job: EmailJob) -> None:
         )
         return
 
+    logger.info("DEBUG SMTP_USER=%r SMTP_PASSWORD=%r LEN=%d", 
+        settings.SMTP_USER, settings.SMTP_PASSWORD, len(settings.SMTP_PASSWORD))
+
     msg = MIMEMultipart("alternative")
     msg["Subject"] = job.subject
     msg["From"]    = f"{settings.EMAIL_FROM_NAME} <{settings.EMAIL_FROM}>"

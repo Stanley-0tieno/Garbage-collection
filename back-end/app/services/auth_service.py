@@ -44,7 +44,7 @@ async def register_user(payload: SignupRequest, db: AsyncSession) -> dict:
     await db.refresh(user)
 
     # 3. Queue confirmation email (non-blocking)
-    confirm_url = f"{settings.FRONTEND_URL}/auth/verify?token={verification_token}"
+    confirm_url = f"http://localhost:8000/api/auth/verify?token={verification_token}"
     await enqueue_email(
         to=user.email,
         subject="Confirm your Waste2Worth account",
