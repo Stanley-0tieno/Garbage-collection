@@ -61,14 +61,15 @@ export class PickupService {
   private mockCreate(userId: string, payload: CreatePickupRequest): Observable<PickupRequest> {
     const all = this.load();
     const newPickup: PickupRequest = {
-      id:        'pickup_' + Date.now(),
+      id: 'pickup_' + Date.now(),
       userId,
       wasteType: payload.wasteType,
-      date:      payload.date,
-      address:   payload.address,
-      notes:     payload.notes,
-      status:    'PENDING',
-      createdAt: new Date().toISOString()
+      date: payload.date,
+      address: payload.address,
+      notes: payload.notes,
+      status: 'PENDING',
+      createdAt: new Date().toISOString(),
+      paymentStatus: 'PENDING'
     };
     all.push(newPickup);
     this.save(all);
@@ -102,21 +103,24 @@ export class PickupService {
         address: '14 Moi Avenue, Nairobi',
         status: 'COMPLETED', collectorName: 'John Kamau',
         completedAt: '2026-03-10T10:30:00Z', pointsEarned: 50,
-        createdAt: '2026-03-08T08:00:00Z'
+        createdAt: '2026-03-08T08:00:00Z',
+        paymentStatus: 'PENDING'
       },
       {
         id: 'pickup_002', userId: mockUserId,
         wasteType: 'organic', date: '2026-03-18',
         address: '14 Moi Avenue, Nairobi',
         status: 'ASSIGNED', collectorName: 'Mary Wanjiku',
-        createdAt: '2026-03-15T09:00:00Z'
+        createdAt: '2026-03-15T09:00:00Z',
+        paymentStatus: 'PENDING'
       },
       {
         id: 'pickup_003', userId: mockUserId,
         wasteType: 'general', date: '2026-03-28',
         address: '14 Moi Avenue, Nairobi',
         status: 'PENDING',
-        createdAt: '2026-03-20T11:00:00Z'
+        createdAt: '2026-03-20T11:00:00Z',
+        paymentStatus: 'PENDING'
       }
     ];
     this.save(data);

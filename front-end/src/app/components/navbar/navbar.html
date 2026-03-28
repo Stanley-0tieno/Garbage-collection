@@ -1,21 +1,48 @@
 <header class="navbar">
+  <!-- Left: hamburger (mobile) + page title -->
   <div class="navbar__left">
-    <h1 class="page-title">{{ pageTitle }}</h1>
+    <button class="hamburger" (click)="menuToggle.emit()" aria-label="Toggle menu">
+      <span></span><span></span><span></span>
+    </button>
+    <div class="page-info">
+      <h1 class="page-title">{{ pageTitle() }}</h1>
+      <p class="page-date">{{ today | date:'EEEE, MMMM d' }}</p>
+    </div>
   </div>
 
+  <!-- Right: notifications + points + user -->
   <div class="navbar__right">
+
     <!-- Points badge (household only) -->
     <div class="points-badge" *ngIf="user()?.role === 'household'">
-      <span class="points-icon">💰</span>
-      <span class="points-value">{{ user()?.points ?? 0 }} pts</span>
+      <span class="points-icon">🌿</span>
+      <div class="points-info">
+        <span class="points-value">{{ user()?.points ?? 0 }}</span>
+        <span class="points-label">eco pts</span>
+      </div>
     </div>
+
+    <!-- Notification bell -->
+    <button class="icon-btn" aria-label="Notifications">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9"/>
+        <path d="M13.73 21a2 2 0 01-3.46 0"/>
+      </svg>
+      <span class="notif-dot"></span>
+    </button>
 
     <!-- User pill -->
     <div class="user-pill" *ngIf="user()">
       <div class="user-avatar">
         {{ user()!.firstName[0] }}{{ user()!.lastName[0] }}
       </div>
-      <span class="user-name">{{ user()!.firstName }}</span>
+      <div class="user-details">
+        <span class="user-name">{{ user()!.firstName }} {{ user()!.lastName }}</span>
+        <span class="user-role">{{ user()!.role | titlecase }}</span>
+      </div>
+      <svg class="chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <path d="M6 9l6 6 6-6"/>
+      </svg>
     </div>
   </div>
 </header>

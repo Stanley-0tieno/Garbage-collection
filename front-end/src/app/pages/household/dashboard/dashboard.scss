@@ -1,4 +1,4 @@
-// ── Loading ────────────────────────────────────────────────
+
 .loading-state {
   display: flex;
   flex-direction: column;
@@ -17,10 +17,14 @@
   border-radius: 50%;
   animation: spin .8s linear infinite;
 }
-
+.highlight-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+  margin-bottom: 2rem;
+}
 @keyframes spin { to { transform: rotate(360deg); } }
 
-// ── Page header ────────────────────────────────────────────
 .page-header {
   display: flex;
   align-items: flex-start;
@@ -312,3 +316,120 @@
   font-size: .875rem;
   color: #9ca3af;
 }
+@media (max-width: 700px) {
+  .highlight-row { grid-template-columns: 1fr; }
+}
+.impact-card {
+  background: linear-gradient(135deg, #f0fdf4, #dcfce7);
+  border: 1px solid #bbf7d0;
+  border-radius: 16px;
+  padding: 1.5rem;
+}
+
+.impact-header {
+  margin-bottom: 1rem;
+}
+
+.impact-title {
+  font-size: 0.875rem;
+  font-weight: 700;
+  color: #15803d;
+}
+
+.impact-body {
+  display: flex;
+  gap: 1.5rem;
+  margin-bottom: 1.25rem;
+}
+
+.impact-stat {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+}
+
+.impact-value {
+  font-size: 1.4rem;
+  font-weight: 800;
+  color: #15803d;
+}
+
+.impact-label {
+  font-size: 0.72rem;
+  color: #6b7280;
+}
+
+.impact-bar-wrap {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.impact-bar {
+  height: 8px;
+  background: #bbf7d0;
+  border-radius: 999px;
+  overflow: hidden;
+}
+
+.impact-bar__fill {
+  height: 100%;
+  background: linear-gradient(90deg, #16a34a, #22c55e);
+  border-radius: 999px;
+  transition: width 0.6s ease;
+}
+
+.impact-bar-label {
+  font-size: 0.72rem;
+  color: #6b7280;
+  font-weight: 500;
+}
+
+/* Next pickup card */
+.next-pickup-card {
+  background: #fff;
+  border: 1px solid #f3f4f6;
+  border-radius: 16px;
+  padding: 1.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  box-shadow: 0 1px 8px rgba(0,0,0,0.05);
+}
+
+.next-pickup-card--empty {
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  border: 1px dashed #e5e7eb;
+  color: #9ca3af;
+  font-size: 0.875rem;
+}
+
+.next-label {
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: #9ca3af;
+}
+
+.next-type {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: #111827;
+}
+
+.next-date {
+  font-size: 1rem;
+  font-weight: 600;
+  color: #16a34a;
+}
+
+.next-address {
+  font-size: 0.825rem;
+  color: #6b7280;
+}
+
+/* action-icon purple variant */
+.action-icon--purple { background: #f5f3ff; }

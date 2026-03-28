@@ -286,7 +286,12 @@ input[type="text"] {
   color: #fff;
   max-width: 360px;
 }
-
+.brand-logo-img {
+  width: 180px;       
+  height: auto;
+  object-fit: contain;
+  margin-bottom: 1.75rem;
+}
 .brand-logo {
   width: 64px;
   height: 64px;

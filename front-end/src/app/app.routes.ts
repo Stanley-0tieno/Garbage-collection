@@ -52,6 +52,11 @@ export const routes: Routes = [
             path: 'pickup-history',
             loadComponent: () =>
               import('./pages/household/pickup-history/pickup-history').then(m => m.PickupHistoryComponent)
+          },
+          {
+            path: 'profile',
+            loadComponent: () =>
+              import('./pages/household/profile/profile').then(m => m.Profile)
           }
         ]
       },
@@ -72,6 +77,11 @@ export const routes: Routes = [
             path: 'pickup-requests',
             loadComponent: () =>
               import('./pages/collector/pickup-requests/pickup-requests').then(m => m.PickupRequests)
+          },
+          {
+            path: 'profile',
+            loadComponent: () =>
+              import('./pages/household/profile/profile').then(m => m.Profile)
           }
         ]
       }
