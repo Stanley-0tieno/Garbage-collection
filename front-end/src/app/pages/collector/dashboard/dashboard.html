@@ -1,1 +1,135 @@
-<p>dashboard works!</p>
+<!-- Loading -->
+<div class="loading-page" *ngIf="loading()">
+  <div class="spinner"></div>
+  <p>Loading dashboard...</p>
+</div>
+
+<ng-container *ngIf="!loading()">
+
+  <!-- Header -->
+  <div class="page-header">
+    <div class="header-text">
+      <h1 class="page-title">Hey, {{ user()?.firstName }} 👋</h1>
+      <p class="page-subtitle">Here's your work overview for today</p>
+    </div>
+    <a routerLink="/collector/pickup-requests" class="btn-primary">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+        <line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/>
+        <line x1="8" y1="18" x2="21" y2="18"/>
+        <circle cx="3" cy="6" r="1" fill="currentColor"/>
+        <circle cx="3" cy="12" r="1" fill="currentColor"/>
+        <circle cx="3" cy="18" r="1" fill="currentColor"/>
+      </svg>
+      All Requests
+    </a>
+  </div>
+
+  <!-- Stats -->
+  <div class="stats-grid">
+    <div class="stat-card stat-card--earnings">
+      <div class="stat-icon">💰</div>
+      <div class="stat-body">
+        <span class="stat-value">KES {{ stats().earnings }}</span>
+        <span class="stat-label">Total Earnings</span>
+      </div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-icon">✅</div>
+      <div class="stat-body">
+        <span class="stat-value">{{ stats().completed }}</span>
+        <span class="stat-label">Completed</span>
+      </div>
+    </div>
+    <div class="stat-card stat-card--active">
+      <div class="stat-icon">🔄</div>
+      <div class="stat-body">
+        <span class="stat-value">{{ stats().active }}</span>
+        <span class="stat-label">Active Jobs</span>
+      </div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-icon">⏳</div>
+      <div class="stat-body">
+        <span class="stat-value">{{ stats().pending }}</span>
+        <span class="stat-label">Available</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Active jobs -->
+  <div class="section" *ngIf="assignedPickups().length > 0">
+    <div class="section-header">
+      <h2 class="section-title">
+        <span class="live-dot"></span>
+        Your Active Jobs
+      </h2>
+      <span class="section-count">{{ assignedPickups().length }}</span>
+    </div>
+
+    <div class="active-jobs-list">
+      <div class="active-job-card" *ngFor="let p of assignedPickups()">
+        <div class="job-left">
+          <span class="job-icon">{{ wasteIcon(p.wasteType) }}</span>
+          <div class="job-details">
+            <span class="job-type">{{ wasteLabel(p.wasteType) }}</span>
+            <span class="job-date">📅 {{ p.date | date:'EEE, MMM d' }}</span>
+            <span class="job-address">📍 {{ p.address }}</span>
+          </div>
+        </div>
+        <div class="job-right">
+          <span class="job-amount" *ngIf="p.amount">KES {{ p.amount }}</span>
+          <a [routerLink]="['/collector/pickup-requests']"
+             [queryParams]="{highlight: p.id}"
+             class="job-action">
+            View Job
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18l6-6-6-6"/></svg>
+          </a>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- New requests preview -->
+  <div class="section">
+    <div class="section-header">
+      <h2 class="section-title">New Requests</h2>
+      <a routerLink="/collector/pickup-requests" class="see-all">View all</a>
+    </div>
+
+    <div class="empty-state" *ngIf="recentPending().length === 0">
+      <div class="empty-icon">🎉</div>
+      <p class="empty-title">All caught up!</p>
+      <p class="empty-desc">No new pickup requests right now.</p>
+    </div>
+
+    <div class="request-list" *ngIf="recentPending().length > 0">
+      <div class="request-row" *ngFor="let p of recentPending()">
+        <div class="request-left">
+          <span>{{ wasteIcon(p.wasteType) }}</span>
+          <div>
+            <span class="request-type">{{ wasteLabel(p.wasteType) }}</span>
+            <span class="request-meta">{{ p.date | date:'MMM d' }} · {{ p.address | slice:0:40 }}...</span>
+          </div>
+        </div>
+        <div class="request-right">
+          <span class="request-amount" *ngIf="p.amount">KES {{ p.amount }}</span>
+          <a routerLink="/collector/pickup-requests" class="btn-accept-sm">Accept</a>
+        </div>
+      </div>
+    </div>
+
+    <a routerLink="/collector/pickup-requests" class="view-more-btn" *ngIf="recentPending().length > 0">
+      View all {{ stats().pending }} available requests →
+    </a>
+  </div>
+
+  <!-- Earnings shortcut -->
+  <div class="earnings-banner" *ngIf="stats().completed > 0">
+    <div class="earnings-text">
+      <span class="earnings-title">💰 You've earned KES {{ stats().earnings }} total</span>
+      <span class="earnings-sub">From {{ stats().completed }} completed pickups</span>
+    </div>
+    <a routerLink="/collector/earnings" class="btn-earnings">View Earnings</a>
+  </div>
+
+</ng-container>

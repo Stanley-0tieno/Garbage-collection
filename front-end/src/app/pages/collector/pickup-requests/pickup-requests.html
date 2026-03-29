@@ -1,1 +1,65 @@
-<p>pickup-requests works!</p>
+<!-- Loading -->
+<div class="loading-page" *ngIf="loading()">
+  <div class="spinner"></div>
+  <p>Loading pickup requests...</p>
+</div>
+
+<ng-container *ngIf="!loading()">
+
+  <div class="page-header">
+    <div>
+      <h1 class="page-title">Pickup Requests</h1>
+      <p class="page-subtitle">Browse, accept, and manage waste collection jobs</p>
+    </div>
+  </div>
+
+  <!-- Filter tabs -->
+  <div class="filter-bar">
+    <button class="filter-tab"
+      *ngFor="let f of filters"
+      [class.filter-tab--active]="activeFilter() === f.value"
+      (click)="setFilter(f.value)">
+      {{ f.label }}
+      <span class="tab-count">{{ f.count() }}</span>
+    </button>
+  </div>
+
+  <!-- Empty state -->
+  <div class="empty-state" *ngIf="filtered().length === 0">
+    <div class="empty-icon">📭</div>
+    <p class="empty-title">Nothing here</p>
+    <p class="empty-desc">
+      {{ activeFilter() === 'PENDING' ? 'No new requests available right now.' :
+         activeFilter() === 'ASSIGNED' ? 'You have no active jobs.' :
+         activeFilter() === 'COMPLETED' ? 'No completed jobs yet.' :
+         'No pickup requests found.' }}
+    </p>
+  </div>
+
+  <!-- Cards grid -->
+  <div class="cards-grid" *ngIf="filtered().length > 0">
+    <div [id]="'pickup-' + p.id" *ngFor="let p of filtered()">
+      <app-pickup-card
+        [pickup]="p"
+        [loading]="updatingId() === p.id"
+        [showActions]="true"
+        (accept)="accept($event)"
+        (complete)="requestComplete($event)">
+      </app-pickup-card>
+    </div>
+  </div>
+
+</ng-container>
+
+<!-- Completion confirm dialog -->
+<div class="confirm-overlay" *ngIf="confirmingId()" (click)="cancelConfirm()">
+  <div class="confirm-dialog" (click)="$event.stopPropagation()">
+    <div class="confirm-icon">✅</div>
+    <h3>Mark as Completed?</h3>
+    <p>This will mark the pickup as complete and award points to the customer. This action cannot be undone.</p>
+    <div class="confirm-actions">
+      <button class="confirm-btn confirm-btn--cancel" (click)="cancelConfirm()">Cancel</button>
+      <button class="confirm-btn confirm-btn--confirm" (click)="confirmComplete()">Yes, Complete</button>
+    </div>
+  </div>
+</div>

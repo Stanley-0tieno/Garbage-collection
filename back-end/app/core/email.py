@@ -81,7 +81,7 @@ def _send_smtp(job: EmailJob) -> None:
 def build_confirmation_email(first_name: str, confirm_url: str) -> str:
     return f"""
     <html><body style="font-family:sans-serif;max-width:600px;margin:auto;">
-      <h2 style="color:#2e7d32;">Welcome to Waste2Worth, {first_name}! 🌱</h2>
+      <h2 style="color:#2e7d32;">Welcome to Waste2Wealth, {first_name}! 🌱</h2>
       <p>Thank you for signing up. Please confirm your email address to activate your account.</p>
       <p style="text-align:center;margin:32px 0;">
         <a href="{confirm_url}"

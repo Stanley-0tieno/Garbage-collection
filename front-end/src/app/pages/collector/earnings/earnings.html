@@ -1,0 +1,83 @@
+<div class="loading-page" *ngIf="loading()">
+  <div class="spinner"></div>
+  <p>Loading earnings...</p>
+</div>
+
+<ng-container *ngIf="!loading()">
+
+  <!-- Header -->
+  <div class="page-header">
+    <div>
+      <h1 class="page-title">Earnings</h1>
+      <p class="page-subtitle">Your payment history from completed pickups</p>
+    </div>
+  </div>
+
+  <!-- Stats -->
+  <div class="earnings-stats">
+    <div class="earning-stat earning-stat--total">
+      <div class="stat-icon">💰</div>
+      <div class="stat-body">
+        <span class="stat-value">KES {{ totalEarnings() }}</span>
+        <span class="stat-label">All-time Earnings</span>
+      </div>
+    </div>
+    <div class="earning-stat">
+      <div class="stat-icon">📅</div>
+      <div class="stat-body">
+        <span class="stat-value">KES {{ thisMonthEarnings() }}</span>
+        <span class="stat-label">This Month</span>
+      </div>
+    </div>
+    <div class="earning-stat">
+      <div class="stat-icon">✅</div>
+      <div class="stat-body">
+        <span class="stat-value">{{ completed().length }}</span>
+        <span class="stat-label">Jobs Completed</span>
+      </div>
+    </div>
+    <div class="earning-stat">
+      <div class="stat-icon">📊</div>
+      <div class="stat-body">
+        <span class="stat-value">
+          KES {{ completed().length > 0 ? (totalEarnings() / completed().length | number:'1.0-0') : 0 }}
+        </span>
+        <span class="stat-label">Avg per Job</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Empty state -->
+  <div class="empty-state" *ngIf="completed().length === 0">
+    <div class="empty-icon">💸</div>
+    <p class="empty-title">No earnings yet</p>
+    <p class="empty-desc">Complete your first pickup to start earning.</p>
+    <a routerLink="/collector/pickup-requests" class="btn-primary">Browse Requests</a>
+  </div>
+
+  <!-- Earnings list -->
+  <div class="earnings-list" *ngIf="completed().length > 0">
+    <div class="list-header">
+      <span>Job Details</span>
+      <span>Amount</span>
+    </div>
+
+    <div class="earning-row" *ngFor="let p of completed()">
+      <div class="earning-left">
+        <div class="earning-icon">{{ wasteIcon(p.wasteType) }}</div>
+        <div class="earning-info">
+          <span class="earning-type">{{ wasteLabel(p.wasteType) }}</span>
+          <span class="earning-address">📍 {{ p.address }}</span>
+          <span class="earning-date">
+            ✅ {{ (p.completedAt ?? p.createdAt) | date:'MMMM d, y' }}
+          </span>
+        </div>
+      </div>
+      <div class="earning-right">
+        <span class="earning-amount">KES {{ p.amount ?? 0 }}</span>
+        <span class="earning-paid">Paid</span>
+      </div>
+    </div>
+  </div>
+
+</ng-container>

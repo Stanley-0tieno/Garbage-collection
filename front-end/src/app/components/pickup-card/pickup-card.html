@@ -1,0 +1,145 @@
+<div class="pickup-card" [class.pickup-card--compact]="compact">
+
+  <!-- Header row -->
+  <div class="card-header">
+    <div class="waste-info">
+      <span class="waste-emoji">{{ wasteIcon }}</span>
+      <div>
+        <span class="waste-name">{{ wasteLabel }}</span>
+        <span class="waste-weight" *ngIf="pickup.weightEstimate">
+          ~{{ pickup.weightEstimate === 1 ? '< 5 kg' : pickup.weightEstimate === 2 ? '5–15 kg' : pickup.weightEstimate === 3 ? '15–30 kg' : '30+ kg' }}
+        </span>
+      </div>
+    </div>
+    <app-status-badge [status]="pickup.status"></app-status-badge>
+  </div>
+
+  <!-- Details -->
+  <div class="card-body">
+
+    <!-- Date -->
+    <div class="detail-row">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+        <rect x="3" y="4" width="18" height="18" rx="2"/>
+        <line x1="3" y1="10" x2="21" y2="10"/>
+        <line x1="8" y1="2" x2="8" y2="6"/>
+        <line x1="16" y1="2" x2="16" y2="6"/>
+      </svg>
+      <span>{{ pickup.date | date:'EEEE, MMM d, y' }}</span>
+    </div>
+
+    <!-- Address + maps -->
+    <div class="detail-row detail-row--address">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+        <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/>
+        <circle cx="12" cy="10" r="3"/>
+      </svg>
+      <div class="address-content">
+        <span class="address-text">{{ pickup.address }}</span>
+        <div class="map-actions">
+          <button class="map-btn" (click)="openMaps('search')">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <polygon points="3 11 22 2 13 21 11 13 3 11"/>
+            </svg>
+            Open in Maps
+          </button>
+          <button class="map-btn map-btn--directions" (click)="openMaps('directions')">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <polyline points="9 18 15 12 9 6"/>
+            </svg>
+            Get Directions
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Customer phone -->
+    <div class="detail-row" *ngIf="customerPhone">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+        <path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07A19.5 19.5 0 013.07 9.8a19.79 19.79 0 01-3.07-8.7A2 2 0 012 1h3a2 2 0 012 1.72 12.84 12.84 0 00.7 2.81 2 2 0 01-.45 2.11L6.91 8.9a16 16 0 006.29 6.29l1.27-.64a2 2 0 012.11-.45 12.84 12.84 0 002.81.7A2 2 0 0122 16.92z"/>
+      </svg>
+      <a [href]="'tel:' + customerPhone" class="phone-link">{{ customerPhone }}</a>
+    </div>
+
+    <!-- Notes -->
+    <div class="detail-row" *ngIf="pickup.notes">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+        <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/>
+        <polyline points="14 2 14 8 20 8"/>
+      </svg>
+      <span class="notes-text">{{ pickup.notes }}</span>
+    </div>
+
+    <!-- Payment -->
+    <div class="payment-row" *ngIf="pickup.amount">
+      <div class="payment-info">
+        <span class="payment-label">Payment</span>
+        <span class="payment-status"
+          [class.payment-status--paid]="pickup.paymentStatus === 'PAID'"
+          [class.payment-status--pending]="pickup.paymentStatus !== 'PAID'">
+          {{ pickup.paymentStatus === 'PAID' ? '✅ Paid' : '⏳ Pending' }}
+        </span>
+      </div>
+      <span class="payment-amount">KES {{ pickup.amount }}</span>
+    </div>
+
+    <!-- Image -->
+    <div class="image-row" *ngIf="pickup.imageUrl">
+      <button class="image-thumb-btn" (click)="openImage()">
+        <img [src]="pickup.imageUrl" alt="Waste image" class="image-thumb" />
+        <div class="image-overlay">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+          </svg>
+          View Photo
+        </div>
+      </button>
+    </div>
+
+  </div>
+
+  <!-- Actions -->
+  <div class="card-actions" *ngIf="showActions && pickup.status !== 'COMPLETED' && pickup.status !== 'CANCELLED'">
+    <button class="action-btn action-btn--accept"
+      *ngIf="pickup.status === 'PENDING'"
+      [disabled]="loading"
+      (click)="accept.emit(pickup)">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+        <polyline points="20 6 9 17 4 12"/>
+      </svg>
+      <span *ngIf="!loading">Accept Job</span>
+      <span *ngIf="loading" class="spinner spinner--sm"></span>
+    </button>
+
+    <button class="action-btn action-btn--complete"
+      *ngIf="pickup.status === 'ASSIGNED'"
+      [disabled]="loading"
+      (click)="complete.emit(pickup)">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+        <path d="M22 11.08V12a10 10 0 11-5.93-9.14"/>
+        <polyline points="22 4 12 14.01 9 11.01"/>
+      </svg>
+      <span *ngIf="!loading">Mark as Completed</span>
+      <span *ngIf="loading" class="spinner spinner--sm"></span>
+    </button>
+  </div>
+
+  <!-- Completed footer -->
+  <div class="completed-footer" *ngIf="pickup.status === 'COMPLETED'">
+    <span>✅ Completed {{ pickup.completedAt | date:'MMM d, y' }}</span>
+    <span *ngIf="pickup.pointsEarned" class="points-earned">+{{ pickup.pointsEarned }} pts</span>
+  </div>
+
+</div>
+
+<!-- Image modal -->
+<div class="image-modal" *ngIf="imageModalOpen()" (click)="closeImage()">
+  <div class="image-modal__inner" (click)="$event.stopPropagation()">
+    <button class="image-modal__close" (click)="closeImage()">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+        <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+      </svg>
+    </button>
+    <img [src]="pickup.imageUrl!" alt="Waste" />
+  </div>
+</div>
