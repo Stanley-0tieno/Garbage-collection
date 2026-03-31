@@ -1,0 +1,88 @@
+<div class="complaint-page">
+
+  <div class="page-header">
+    <a routerLink="/household/complaints" class="back-link">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <path d="M19 12H5M12 5l-7 7 7 7"/>
+      </svg>
+      Back to Complaints
+    </a>
+    <h1 class="page-title">Submit a Complaint</h1>
+    <p class="page-subtitle">Let us know about any issues with your pickup service</p>
+  </div>
+
+  <div class="alert alert--error" *ngIf="errorMessage()">
+    <svg viewBox="0 0 20 20" fill="currentColor">
+      <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/>
+    </svg>
+    {{ errorMessage() }}
+  </div>
+
+  <form [formGroup]="form" (ngSubmit)="submit()" novalidate>
+    <div class="form-card">
+
+      <!-- Issue type -->
+      <div class="form-section">
+        <label class="form-label">What went wrong? <span class="required">*</span></label>
+        <p class="form-hint">Select the type of issue you experienced</p>
+        <div class="issue-grid">
+          <button type="button"
+            class="issue-btn"
+            *ngFor="let opt of issueTypes"
+            [class.issue-btn--active]="issueType.value === opt.value"
+            (click)="selectIssue(opt.value)">
+            <span class="issue-label">{{ opt.label }}</span>
+            <span class="issue-desc">{{ opt.desc }}</span>
+          </button>
+        </div>
+        <span class="field-error" *ngIf="issueType.invalid && issueType.touched">
+          Please select an issue type
+        </span>
+      </div>
+
+      <!-- Related pickup -->
+      <div class="form-section">
+        <label class="form-label">Related Pickup <span class="optional">(optional)</span></label>
+        <p class="form-hint">Select the specific pickup this complaint is about</p>
+        <select formControlName="pickupId" class="select-input">
+          <option value="">— None selected —</option>
+          <option *ngFor="let p of pickupList()" [value]="p.id">
+            {{ p.date | date:'MMM d, y' }} · {{ p.wasteType }} · {{ p.status }}
+          </option>
+        </select>
+      </div>
+
+      <!-- Message -->
+      <div class="form-section">
+        <div class="field" [class.field--error]="message.invalid && message.touched">
+          <label class="form-label">Describe the Issue <span class="required">*</span></label>
+          <p class="form-hint">Please be as detailed as possible so we can help you</p>
+          <textarea formControlName="message" rows="5"
+            placeholder="e.g. The collector was supposed to arrive by 9am but came at 3pm with no communication...">
+          </textarea>
+          <div class="char-hint">
+            <span class="field-error" *ngIf="message.invalid && message.touched">
+              Please enter at least 10 characters
+            </span>
+            <span class="char-count">{{ message.value?.length ?? 0 }} chars</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="form-actions">
+        <a routerLink="/household/complaints" class="btn-cancel">Cancel</a>
+        <button type="submit" class="btn-submit" [disabled]="loading()">
+          <span *ngIf="!loading()">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+              <path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"/>
+              <line x1="4" y1="22" x2="4" y2="15"/>
+            </svg>
+            Submit Complaint
+          </span>
+          <span *ngIf="loading()" class="spinner"></span>
+        </button>
+      </div>
+
+    </div>
+  </form>
+</div>

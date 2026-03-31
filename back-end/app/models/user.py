@@ -19,7 +19,7 @@ class User(Base):
     phone:      Mapped[str]  = mapped_column(String(30))
     hashed_password: Mapped[str] = mapped_column(String(255))
     role: Mapped[str] = mapped_column(
-        Enum("household", "collector", name="user_role"), nullable=False
+        Enum("household", "collector", "admin" ,name="user_role"), nullable=False
     )
     points: Mapped[int] = mapped_column(Integer, default=0)
 

@@ -3,7 +3,7 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 
 class Settings(BaseSettings):
     # App
-    APP_NAME: str = "Waste2Worth API"
+    APP_NAME: str = "Waste2Wealth API"
     DEBUG: bool = False
 
     # Database — asyncpg driver for PostgreSQL
@@ -20,7 +20,7 @@ class Settings(BaseSettings):
     SMTP_USER: str = ""        # overridden by EMAIL_USERNAME in .env
     SMTP_PASSWORD: str = ""    # overridden by EMAIL_PASSWORD in .env
     EMAIL_FROM: str = ""       # defaults to SMTP_USER if blank
-    EMAIL_FROM_NAME: str = "Waste2Worth"
+    EMAIL_FROM_NAME: str = "Waste2Wealth"
 
     # These match your Java / OS env var names exactly
     EMAIL_USERNAME: str = ""

@@ -1,0 +1,124 @@
+<div class="loading-state" *ngIf="loading()">
+  <div class="spinner"></div>
+  <p>Loading complaints...</p>
+</div>
+
+<ng-container *ngIf="!loading()">
+  <div class="page-header">
+    <div>
+      <h1 class="page-title">All Complaints</h1>
+      <p class="page-subtitle">Review and resolve user-submitted complaints</p>
+    </div>
+    <div class="header-stats">
+      <span class="stat-pill">{{ list().length }} total</span>
+      <span class="stat-pill stat-pill--open">
+        {{ list().length - (list() | filter:'status':'RESOLVED').length }} open
+      </span>
+    </div>
+  </div>
+
+  <div class="filter-tabs">
+    <button class="filter-tab"
+      *ngFor="let f of filters"
+      [class.filter-tab--active]="activeFilter() === f.value"
+      (click)="activeFilter.set(f.value)">
+      {{ f.label }}
+    </button>
+  </div>
+
+  <div class="admin-layout">
+
+    <!-- List -->
+    <div class="complaint-list">
+      <div class="complaint-row"
+        *ngFor="let c of filtered()"
+        [class.complaint-row--active]="selected()?.id === c.id"
+        (click)="openDetail(c)">
+        <div class="row-left">
+          <span class="role-tag" [class.role-tag--collector]="c.userRole === 'collector'">
+            {{ c.userRole === 'household' ? '🏠' : '🚛' }}
+          </span>
+          <div>
+            <p class="row-issue">{{ issueLabel(c.issueType) }}</p>
+            <p class="row-msg">{{ c.message }}</p>
+            <p class="row-date">{{ c.createdAt | date:'MMM d, y' }}</p>
+          </div>
+        </div>
+        <span class="badge" [ngClass]="statusClass(c.status)">{{ c.status }}</span>
+      </div>
+
+      <div class="empty-state" *ngIf="filtered().length === 0">
+        <div class="empty-icon">✅</div>
+        <p class="empty-title">All clear!</p>
+        <p class="empty-desc">No complaints in this category.</p>
+      </div>
+    </div>
+
+    <!-- Detail panel -->
+    <div class="detail-panel" *ngIf="selected()">
+      <div class="detail-header">
+        <h3>Complaint Detail</h3>
+        <button class="close-btn" (click)="closeDetail()">✕</button>
+      </div>
+
+      <div class="detail-body">
+        <div class="detail-row">
+          <span class="detail-label">Issue</span>
+          <span class="detail-value">{{ issueLabel(selected()!.issueType) }}</span>
+        </div>
+        <div class="detail-row">
+          <span class="detail-label">From</span>
+          <span class="detail-value">{{ selected()!.userRole | titlecase }}</span>
+        </div>
+        <div class="detail-row">
+          <span class="detail-label">Status</span>
+          <span class="badge" [ngClass]="statusClass(selected()!.status)">{{ selected()!.status }}</span>
+        </div>
+        <div class="detail-row">
+          <span class="detail-label">Date</span>
+          <span class="detail-value">{{ selected()!.createdAt | date:'MMM d, y, h:mm a' }}</span>
+        </div>
+
+        <div class="detail-message">
+          <span class="detail-label">Message</span>
+          <p>{{ selected()!.message }}</p>
+        </div>
+
+        <div class="admin-note-section">
+          <label class="detail-label">Admin Note</label>
+          <textarea rows="3" [(ngModel)]="adminNote"
+            placeholder="Add a resolution note..."></textarea>
+        </div>
+
+        <div class="action-buttons">
+          <button class="btn-review"
+            *ngIf="selected()!.status === 'OPEN'"
+            [disabled]="resolving()"
+            (click)="updateStatus('IN_REVIEW')">
+            Mark In Review
+          </button>
+          <button class="btn-resolve"
+            *ngIf="selected()!.status !== 'RESOLVED'"
+            [disabled]="resolving()"
+            (click)="updateStatus('RESOLVED')">
+            <span *ngIf="!resolving()">Mark Resolved</span>
+            <span *ngIf="resolving()" class="spinner spinner--sm"></span>
+          </button>
+          <button class="btn-close-complaint"
+            *ngIf="selected()!.status === 'RESOLVED'"
+            [disabled]="resolving()"
+            (click)="updateStatus('CLOSED')">
+            Close Complaint
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Placeholder when nothing selected -->
+    <div class="detail-placeholder" *ngIf="!selected()">
+      <span>👈</span>
+      <p>Select a complaint to review</p>
+    </div>
+
+  </div>
+</ng-container>

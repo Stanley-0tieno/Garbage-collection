@@ -9,6 +9,9 @@ from app.core.config import settings
 from app.core.email import email_worker
 from app.db.session import Base, engine
 from app.api.v1.auth import router as auth_router
+from app.api.v1.complaints import router as complaints_router
+from app.api.v1.notifications import router as notifications_router
+
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -49,7 +52,8 @@ app.add_middleware(
 )
 
 app.include_router(auth_router, prefix="/api")
-
+app.include_router(complaints_router, prefix="/api")
+app.include_router(notifications_router, prefix="/api")
 
 @app.get("/health", tags=["meta"])
 async def health():

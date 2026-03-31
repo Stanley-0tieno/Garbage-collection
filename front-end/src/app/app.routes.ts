@@ -6,7 +6,7 @@ import { Layout } from './components/layout/layout';
 export const routes: Routes = [
   { path: '', redirectTo: 'auth/login', pathMatch: 'full' },
 
-  // ── Auth (no layout) ──────────────────────────────────
+  // Auth (no layout)
   {
     path: 'auth',
     children: [
@@ -19,21 +19,21 @@ export const routes: Routes = [
         path: 'signup',
         loadComponent: () => import('./pages/auth/signup/signup').then(m => m.SignupComponent)
       },
-      // {
-      //   path: 'verify-email',
-      //   loadComponent: () => import('./pages/auth/verify-email/verify-email').then(m => m.VerifyEmailComponent)
-      // }
+      {
+        path: 'verify',
+        loadComponent: () => import('./pages/auth/verify/verify').then(m => m.VerifyComponent)
+      }
     ]
   },
 
-  // ── Protected routes (inside Layout shell) ────────────
+  //Protected routes (inside Layout shell)
   {
     path: '',
     component: Layout,
     canActivate: [authGuard],
     children: [
 
-      // Household
+      //Household 
       {
         path: 'household',
         canActivate: [roleGuard],
@@ -55,11 +55,19 @@ export const routes: Routes = [
           {
             path: 'profile',
             loadComponent: () => import('./pages/household/profile/profile').then(m => m.Profile)
+          },
+          {
+            path: 'complaints',
+            loadComponent: () => import('./pages/household/complaints/list/my-complaints/my-complaints').then(m => m.MyComplaintsComponent)
+          },
+          {
+            path: 'complaints/new',
+            loadComponent: () => import('./pages/household/complaints/new/new-complaint/new-complaint').then(m => m.NewComplaintComponent)
           }
         ]
       },
 
-      // Collector
+      //Collector
       {
         path: 'collector',
         canActivate: [roleGuard],
@@ -81,6 +89,36 @@ export const routes: Routes = [
           {
             path: 'profile',
             loadComponent: () => import('./pages/household/profile/profile').then(m => m.Profile)
+          },
+          {
+            path: 'complaints',
+            loadComponent: () => import('./pages/collector/complaints/list/my-reports/my-reports').then(m => m.MyReportsComponent)
+          },
+          {
+            path: 'complaints/new',
+            loadComponent: () => import('./pages/collector/complaints/new/new-reports/new-reports').then(m => m.NewReportComponent)
+          }
+        ]
+      },
+
+      // Admin 
+      {
+        path: 'admin',
+        canActivate: [roleGuard],
+        data: { role: 'admin' },
+        children: [
+          { path: '', redirectTo: 'dashboard', pathMatch: 'full' },
+          {
+            path: 'dashboard',
+            loadComponent: () => import('./pages/admin/dashboard/dashboard').then(m => m.Dashboard)
+          },
+          {
+            path: 'complaints',
+            loadComponent: () => import('./pages/admin/complaints/admin-complaints/admin-complaints').then(m => m.AdminComplaintsComponent)
+          },
+          {
+            path: 'users',
+            loadComponent: () => import('./pages/admin/users/users').then(m => m.Users)
           }
         ]
       }

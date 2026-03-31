@@ -1,0 +1,47 @@
+<div class="notif-panel" *ngIf="notifService.panelOpen()">
+  <div class="notif-header">
+    <h3>Notifications</h3>
+    <div class="notif-actions">
+      <button class="mark-all-btn"
+        *ngIf="notifService.unreadCount() > 0"
+        (click)="notifService.markAllRead()">
+        Mark all read
+      </button>
+      <button class="close-btn" (click)="notifService.closePanel()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+          <path d="M18 6L6 18M6 6l12 12"/>
+        </svg>
+      </button>
+    </div>
+  </div>
+
+  <div class="notif-list">
+
+    <!-- Empty -->
+    <div class="notif-empty" *ngIf="notifService.notifications().length === 0">
+      <span class="notif-empty-icon">🔔</span>
+      <p>No notifications yet</p>
+    </div>
+
+    <!-- Items -->
+    <div class="notif-item"
+      *ngFor="let n of notifService.notifications()"
+      [class.notif-item--unread]="!n.read"
+      (click)="notifService.markOneRead(n.id)">
+      <div class="notif-icon">{{ iconFor(n.type) }}</div>
+      <div class="notif-body">
+        <p class="notif-title">{{ n.title }}</p>
+        <p class="notif-msg">{{ n.message }}</p>
+        <span class="notif-time">{{ timeAgo(n.createdAt) }}</span>
+      </div>
+      <div class="notif-dot" *ngIf="!n.read"></div>
+    </div>
+
+  </div>
+</div>
+
+<!-- Backdrop -->
+<div class="notif-backdrop"
+  *ngIf="notifService.panelOpen()"
+  (click)="notifService.closePanel()">
+</div>

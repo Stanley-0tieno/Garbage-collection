@@ -1,0 +1,86 @@
+<div class="complaint-page">
+
+  <div class="page-header">
+    <a routerLink="/collector/complaints" class="back-link">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <path d="M19 12H5M12 5l-7 7 7 7"/>
+      </svg>
+      Back to Reports
+    </a>
+    <h1 class="page-title">Report an Issue</h1>
+    <p class="page-subtitle">Report any problems you encountered during a pickup</p>
+  </div>
+
+  <div class="alert alert--error" *ngIf="errorMessage()">
+    <svg viewBox="0 0 20 20" fill="currentColor">
+      <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/>
+    </svg>
+    {{ errorMessage() }}
+  </div>
+
+  <form [formGroup]="form" (ngSubmit)="submit()" novalidate>
+    <div class="form-card">
+
+      <!-- Issue type -->
+      <div class="form-section">
+        <label class="form-label">Issue Type <span class="required">*</span></label>
+        <p class="form-hint">Select the type of problem you encountered</p>
+        <div class="issue-grid">
+          <button type="button"
+            class="issue-btn"
+            *ngFor="let opt of issueTypes"
+            [class.issue-btn--active]="issueType.value === opt.value"
+            (click)="selectIssue(opt.value)">
+            <span class="issue-label">{{ opt.label }}</span>
+            <span class="issue-desc">{{ opt.desc }}</span>
+          </button>
+        </div>
+        <span class="field-error" *ngIf="issueType.invalid && issueType.touched">
+          Please select an issue type
+        </span>
+      </div>
+
+      <!-- Pickup reference -->
+      <div class="form-section">
+        <div class="field">
+          <label class="form-label">Pickup Reference ID <span class="optional">(optional)</span></label>
+          <p class="form-hint">Enter the pickup ID this report relates to</p>
+          <input type="text" formControlName="pickupId"
+            placeholder="e.g. abc12345-..." />
+        </div>
+      </div>
+
+      <!-- Notes -->
+      <div class="form-section">
+        <div class="field" [class.field--error]="message.invalid && message.touched">
+          <label class="form-label">Details <span class="required">*</span></label>
+          <p class="form-hint">Describe exactly what happened</p>
+          <textarea formControlName="message" rows="5"
+            placeholder="e.g. I arrived at the address at 10am but no one was home. I tried calling three times with no answer...">
+          </textarea>
+          <div class="char-hint">
+            <span class="field-error" *ngIf="message.invalid && message.touched">
+              Please enter at least 10 characters
+            </span>
+            <span class="char-count">{{ message.value?.length ?? 0 }} chars</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="form-actions">
+        <a routerLink="/collector/complaints" class="btn-cancel">Cancel</a>
+        <button type="submit" class="btn-submit" [disabled]="loading()">
+          <span *ngIf="!loading()">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+              <path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"/>
+              <line x1="4" y1="22" x2="4" y2="15"/>
+            </svg>
+            Submit Report
+          </span>
+          <span *ngIf="loading()" class="spinner"></span>
+        </button>
+      </div>
+
+    </div>
+  </form>
+</div>

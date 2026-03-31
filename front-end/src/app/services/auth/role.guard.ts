@@ -1,18 +1,22 @@
 import { inject } from '@angular/core';
-import { CanActivateFn, Router, ActivatedRouteSnapshot } from '@angular/router';
+import { CanActivateFn, Router } from '@angular/router';
 import { AuthService } from '../api/auth.service';
-import { UserRole } from '../../models/user.model';
 
-export const roleGuard: CanActivateFn = (route: ActivatedRouteSnapshot) => {
+export const roleGuard: CanActivateFn = (route) => {
   const auth     = inject(AuthService);
   const router   = inject(Router);
-  const required = route.data['role'] as UserRole;
+  const expected = route.data['role'] as string;
+  const actual   = auth.userRole();
 
-  if (auth.userRole() === required) return true;
+  if (actual === expected) return true;
 
-  const fallback = auth.userRole() === 'household'
-    ? '/household/dashboard'
-    : '/collector/dashboard';
-  router.navigate([fallback]);
+  // Redirect to the correct dashboard based on actual role
+  const fallback: Record<string, string> = {
+    household: '/household/dashboard',
+    collector: '/collector/dashboard',
+    admin:     '/admin/dashboard',
+  };
+
+  router.navigate([fallback[actual ?? ''] ?? '/auth/login']);
   return false;
 };
