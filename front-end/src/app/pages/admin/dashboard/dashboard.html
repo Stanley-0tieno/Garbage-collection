@@ -1,1 +1,162 @@
-<p>dashboard works!</p>
+<div class="loading-page" *ngIf="loading()">
+  <div class="spinner"></div>
+  <p>Loading dashboard...</p>
+</div>
+
+<ng-container *ngIf="!loading()">
+  <div class="page-header">
+    <div>
+      <h1 class="page-title">Admin Dashboard</h1>
+      <p class="page-subtitle">Platform overview — Waste2Wealth</p>
+    </div>
+    <div class="header-actions">
+      <a routerLink="/admin/complaints" class="btn-warn" *ngIf="stats().openComplaints > 0">
+        ⚠️ {{ stats().openComplaints }} open {{ stats().openComplaints === 1 ? 'complaint' : 'complaints' }}
+      </a>
+      <a routerLink="/admin/users" class="btn-action">View All Users</a>
+    </div>
+  </div>
+
+  <!-- KPIs -->
+  <div class="kpi-grid">
+    <div class="kpi-card kpi-card--green">
+      <div class="kpi-icon">💰</div>
+      <div class="kpi-body">
+        <span class="kpi-value">KES {{ stats().totalRevenue | number }}</span>
+        <span class="kpi-label">Total Revenue</span>
+      </div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-icon">👥</div>
+      <div class="kpi-body">
+        <span class="kpi-value">{{ stats().totalUsers }}</span>
+        <span class="kpi-label">Total Users</span>
+        <span class="kpi-sub">{{ stats().households }} households · {{ stats().collectors }} collectors</span>
+      </div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-icon">📦</div>
+      <div class="kpi-body">
+        <span class="kpi-value">{{ stats().totalPickups }}</span>
+        <span class="kpi-label">Total Pickups</span>
+        <span class="kpi-sub">{{ stats().completedPickups }} completed · {{ stats().pendingPickups }} pending</span>
+      </div>
+    </div>
+    <div class="kpi-card" [class.kpi-card--warn]="stats().openComplaints > 0">
+      <div class="kpi-icon">📋</div>
+      <div class="kpi-body">
+        <span class="kpi-value">{{ stats().openComplaints }}</span>
+        <span class="kpi-label">Open Complaints</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Main grid -->
+  <div class="main-grid">
+    <div class="col-main">
+
+      <!-- Recent pickups -->
+      <div class="section-card">
+        <div class="section-header">
+          <h2 class="section-title">Recent Pickups</h2>
+          <span class="section-count">{{ stats().totalPickups }}</span>
+        </div>
+        <div class="table-list">
+          <div class="table-row" *ngFor="let p of recentPickups()">
+            <div class="row-icon">{{ wasteIcon(p.wasteType) }}</div>
+            <div class="row-main">
+              <span class="row-title">{{ p.wasteType | titlecase }} · {{ p.address | slice:0:35 }}...</span>
+              <span class="row-sub">{{ p.date | date:'MMM d, y' }} · KES {{ p.amount ?? '—' }}</span>
+            </div>
+            <span class="badge" [ngClass]="pickupStatusClass(p.status)">{{ p.status }}</span>
+          </div>
+          <div class="table-empty" *ngIf="recentPickups().length === 0">No pickups yet</div>
+        </div>
+      </div>
+
+      <!-- Recent users -->
+      <div class="section-card">
+        <div class="section-header">
+          <h2 class="section-title">Recent Signups</h2>
+          <a routerLink="/admin/users" class="see-all">View all</a>
+        </div>
+        <div class="user-list">
+          <div class="user-row" *ngFor="let u of recentUsers()">
+            <div class="user-avatar" [class.user-avatar--collector]="u.role === 'collector'">
+              {{ u.firstName[0] }}{{ u.lastName[0] }}
+            </div>
+            <div class="user-info">
+              <span class="user-name">{{ u.firstName }} {{ u.lastName }}</span>
+              <span class="user-meta">{{ u.email }}</span>
+            </div>
+            <div class="user-right">
+              <span class="role-pill" [class.role-pill--collector]="u.role === 'collector'">
+                {{ u.role === 'household' ? '🏠' : '🚛' }} {{ u.role | titlecase }}
+              </span>
+            </div>
+          </div>
+          <div class="table-empty" *ngIf="recentUsers().length === 0">No users yet</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-side">
+      <!-- Open complaints -->
+      <div class="section-card">
+        <div class="section-header">
+          <h2 class="section-title">Open Complaints</h2>
+          <a routerLink="/admin/complaints" class="see-all">Manage</a>
+        </div>
+        <div class="complaint-mini-list">
+          <a class="complaint-mini" routerLink="/admin/complaints" *ngFor="let c of recentComplaints()">
+            <span>{{ c.userRole === 'household' ? '🏠' : '🚛' }}</span>
+            <div class="c-body">
+              <span class="c-issue">{{ complaintSvc.issueLabel(c.issueType) }}</span>
+              <span class="c-msg">{{ c.message | slice:0:55 }}...</span>
+            </div>
+            <span class="status-pill" [ngClass]="complaintStatusClass(c.status)">
+              {{ c.status === 'IN_REVIEW' ? 'Review' : c.status | titlecase }}
+            </span>
+          </a>
+          <div class="all-clear" *ngIf="recentComplaints().length === 0">
+            <span>✅</span><p>No open complaints</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Breakdown -->
+      <div class="section-card">
+        <h2 class="section-title" style="margin-bottom:1rem">User Breakdown</h2>
+        <div class="breakdown">
+          <div class="breakdown-item">
+            <div class="breakdown-label">
+              <span>🏠 Households</span><strong>{{ stats().households }}</strong>
+            </div>
+            <div class="breakdown-bar">
+              <div class="breakdown-fill breakdown-fill--household"
+                [style.width.%]="stats().totalUsers > 0 ? (stats().households / stats().totalUsers) * 100 : 0"></div>
+            </div>
+          </div>
+          <div class="breakdown-item">
+            <div class="breakdown-label">
+              <span>🚛 Collectors</span><strong>{{ stats().collectors }}</strong>
+            </div>
+            <div class="breakdown-bar">
+              <div class="breakdown-fill breakdown-fill--collector"
+                [style.width.%]="stats().totalUsers > 0 ? (stats().collectors / stats().totalUsers) * 100 : 0"></div>
+            </div>
+          </div>
+        </div>
+        <div class="rate-box">
+          <div class="rate-row">
+            <span class="rate-label">Pickup completion rate</span>
+            <span class="rate-value">{{ stats().totalPickups > 0 ? ((stats().completedPickups / stats().totalPickups) * 100 | number:'1.0-0') : 0 }}%</span>
+          </div>
+          <div class="rate-bar">
+            <div class="rate-fill" [style.width.%]="stats().totalPickups > 0 ? (stats().completedPickups / stats().totalPickups) * 100 : 0"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</ng-container>

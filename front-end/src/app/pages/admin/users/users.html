@@ -1,1 +1,210 @@
-<p>users works!</p>
+<div class="loading-page" *ngIf="loading()">
+  <div class="spinner"></div><p>Loading users...</p>
+</div>
+
+<ng-container *ngIf="!loading()">
+
+  <!-- Header -->
+  <div class="page-header">
+    <div>
+      <h1 class="page-title">Users</h1>
+      <p class="page-subtitle">All registered users on the platform</p>
+    </div>
+  </div>
+
+  <!-- Stats row -->
+  <div class="user-stats">
+    <div class="user-stat">
+      <span class="user-stat__value">{{ stats().total }}</span>
+      <span class="user-stat__label">Total</span>
+    </div>
+    <div class="user-stat user-stat--household">
+      <span class="user-stat__value">{{ stats().households }}</span>
+      <span class="user-stat__label">Households</span>
+    </div>
+    <div class="user-stat user-stat--collector">
+      <span class="user-stat__value">{{ stats().collectors }}</span>
+      <span class="user-stat__label">Collectors</span>
+    </div>
+    <div class="user-stat user-stat--active">
+      <span class="user-stat__value">{{ stats().active }}</span>
+      <span class="user-stat__label">Active</span>
+    </div>
+  </div>
+
+  <!-- Controls -->
+  <div class="controls">
+    <div class="search-wrap">
+      <svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+        <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+      </svg>
+      <input type="text" class="search-input" placeholder="Search by name, email or phone..."
+        [value]="searchQuery()"
+        (input)="searchQuery.set($any($event.target).value)" />
+    </div>
+
+    <div class="role-tabs">
+      <button class="role-tab"
+        *ngFor="let f of roleFilters"
+        [class.role-tab--active]="roleFilter() === f.value"
+        (click)="roleFilter.set(f.value)">
+        {{ f.label }}
+      </button>
+    </div>
+  </div>
+
+  <!-- Empty state -->
+  <div class="empty-state" *ngIf="filtered().length === 0">
+    <div class="empty-icon">🔍</div>
+    <p class="empty-title">No users found</p>
+    <p class="empty-desc">Try adjusting your search or filter.</p>
+  </div>
+
+  <!-- Users table -->
+  <div class="users-table" *ngIf="filtered().length > 0">
+    <div class="table-head">
+      <span>User</span>
+      <span>Contact</span>
+      <span>Role</span>
+      <span>Pickups</span>
+      <span>Value</span>
+      <span>Joined</span>
+      <span>Status</span>
+    </div>
+
+    <div class="table-row" *ngFor="let u of filtered()" (click)="openUser(u)">
+      <div class="col-user">
+        <div class="user-avatar" [class.user-avatar--collector]="u.role === 'collector'">
+          {{ u.firstName[0] }}{{ u.lastName[0] }}
+        </div>
+        <div>
+          <span class="user-name">{{ u.firstName }} {{ u.lastName }}</span>
+          <span class="user-id">ID: {{ u.id | slice:0:10 }}...</span>
+        </div>
+      </div>
+      <div class="col-contact">
+        <span>{{ u.email }}</span>
+        <span class="phone-link"><a [href]="'tel:' + u.phone">{{ u.phone }}</a></span>
+      </div>
+      <span class="role-pill" [class.role-pill--collector]="u.role === 'collector'">
+        {{ u.role === 'household' ? '🏠 Household' : '🚛 Collector' }}
+      </span>
+      <div class="col-pickups">
+        <span class="pickups-value">{{ u.totalPickups ?? 0 }}</span>
+        <span class="pickups-sub">{{ u.completedPickups ?? 0 }} done</span>
+      </div>
+      <div class="col-value">
+        <span class="value-amount" *ngIf="u.role === 'household'">KES {{ u.totalSpent ?? 0 }}</span>
+        <span class="value-amount value-amount--earned" *ngIf="u.role === 'collector'">KES {{ u.totalEarned ?? 0 }}</span>
+        <span class="value-sub">{{ u.role === 'household' ? 'spent' : 'earned' }}</span>
+      </div>
+      <span class="join-date">{{ u.createdAt | date:'MMM d, y' }}</span>
+      <span class="status-dot" [class.status-dot--active]="u.isActive">
+        {{ u.isActive ? 'Active' : 'Inactive' }}
+      </span>
+    </div>
+  </div>
+
+</ng-container>
+
+<!-- User detail panel -->
+<div class="panel-overlay" *ngIf="selectedUser()" (click)="closeUser()">
+  <div class="slide-panel" (click)="$event.stopPropagation()">
+
+    <div class="panel-header">
+      <div class="panel-user-info">
+        <div class="panel-avatar" [class.panel-avatar--collector]="selectedUser()!.role === 'collector'">
+          {{ selectedUser()!.firstName[0] }}{{ selectedUser()!.lastName[0] }}
+        </div>
+        <div>
+          <h2>{{ selectedUser()!.firstName }} {{ selectedUser()!.lastName }}</h2>
+          <span class="panel-role">{{ selectedUser()!.role === 'household' ? '🏠 Household' : '🚛 Collector' }}</span>
+        </div>
+      </div>
+      <button class="panel-close" (click)="closeUser()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+          <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+        </svg>
+      </button>
+    </div>
+
+    <div class="panel-body">
+
+      <!-- Contact details -->
+      <div class="detail-section">
+        <h3 class="detail-section__title">Contact</h3>
+        <div class="detail-grid">
+          <div class="detail-item">
+            <span class="detail-label">Email</span>
+            <span class="detail-value">{{ selectedUser()!.email }}</span>
+          </div>
+          <div class="detail-item">
+            <span class="detail-label">Phone</span>
+            <a [href]="'tel:' + selectedUser()!.phone" class="detail-value detail-value--link">
+              {{ selectedUser()!.phone }}
+            </a>
+          </div>
+          <div class="detail-item">
+            <span class="detail-label">Joined</span>
+            <span class="detail-value">{{ selectedUser()!.createdAt | date:'MMMM d, y' }}</span>
+          </div>
+          <div class="detail-item">
+            <span class="detail-label">Status</span>
+            <span class="status-dot" [class.status-dot--active]="selectedUser()!.isActive">
+              {{ selectedUser()!.isActive ? 'Active' : 'Inactive' }}
+            </span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Stats -->
+      <div class="detail-section">
+        <h3 class="detail-section__title">Activity</h3>
+        <div class="mini-stats">
+          <div class="mini-stat">
+            <span class="mini-stat__value">{{ selectedUser()!.totalPickups ?? 0 }}</span>
+            <span class="mini-stat__label">Total Pickups</span>
+          </div>
+          <div class="mini-stat">
+            <span class="mini-stat__value">{{ selectedUser()!.completedPickups ?? 0 }}</span>
+            <span class="mini-stat__label">Completed</span>
+          </div>
+          <div class="mini-stat" *ngIf="selectedUser()!.role === 'household'">
+            <span class="mini-stat__value mini-stat__value--green">{{ selectedUser()!.points ?? 0 }}</span>
+            <span class="mini-stat__label">Points</span>
+          </div>
+          <div class="mini-stat" *ngIf="selectedUser()!.role === 'household'">
+            <span class="mini-stat__value">KES {{ selectedUser()!.totalSpent ?? 0 }}</span>
+            <span class="mini-stat__label">Total Spent</span>
+          </div>
+          <div class="mini-stat" *ngIf="selectedUser()!.role === 'collector'">
+            <span class="mini-stat__value mini-stat__value--green">KES {{ selectedUser()!.totalEarned ?? 0 }}</span>
+            <span class="mini-stat__label">Total Earned</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Pickup history -->
+      <div class="detail-section">
+        <h3 class="detail-section__title">Pickup History</h3>
+        <div class="pickup-mini-list" *ngIf="userPickups().length > 0">
+          <div class="pickup-mini" *ngFor="let p of userPickups()">
+            <span>{{ wasteIcon(p.wasteType) }}</span>
+            <div class="pickup-mini__info">
+              <span class="pickup-mini__type">{{ p.wasteType | titlecase }}</span>
+              <span class="pickup-mini__date">{{ p.date | date:'MMM d, y' }} · {{ p.address | slice:0:30 }}...</span>
+            </div>
+            <div class="pickup-mini__right">
+              <span class="badge" [ngClass]="pickupStatusClass(p.status)">{{ p.status }}</span>
+              <span class="pickup-mini__amount" *ngIf="p.amount">KES {{ p.amount }}</span>
+            </div>
+          </div>
+        </div>
+        <div class="no-pickups" *ngIf="userPickups().length === 0">
+          <p>No pickups found for this user.</p>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>

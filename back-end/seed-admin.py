@@ -10,9 +10,9 @@ async def seed():
             id=str(uuid.uuid4()),
             first_name="Admin",
             last_name="User",
-            email="admin@waste2wealth.com",
+            email="175dollarsnow@gmail.com",
             phone="+254700000000",
-            hashed_password=hash_password("AdminPass123!"),
+            hashed_password=hash_password("Adminpass123!"),
             role="admin",
             is_verified=True,
         )
