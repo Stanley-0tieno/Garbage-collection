@@ -19,4 +19,17 @@ async def get_current_user(
     user = await db.get(User, user_id)
     if not user:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="User not found.")
+    if not user.is_active:
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="User is inactive.")
     return user
+
+def require_role(allowed_roles: list[str]):
+    def role_checker(current_user: User = Depends(get_current_user)):
+        if current_user.role not in allowed_roles:
+            raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Not enough permissions")
+        return current_user
+    return role_checker
+
+require_household = require_role(["household"])
+require_collector = require_role(["collector"])
+require_admin = require_role(["admin"])

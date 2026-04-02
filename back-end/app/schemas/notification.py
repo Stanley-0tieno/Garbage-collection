@@ -1,23 +1,17 @@
-from pydantic import BaseModel
+from pydantic import BaseModel, ConfigDict
+from pydantic.alias_generators import to_camel
 from datetime import datetime
 from typing import Optional
 
 class NotificationOut(BaseModel):
     id: str
-    userId: str
+    user_id: str
     type: str
     title: str
     message: str
     read: bool
-    linkUrl: Optional[str]
-    createdAt: datetime
-
-    model_config = {"from_attributes": True}
-
-    @classmethod
-    def from_orm(cls, n) -> "NotificationOut":
-        return cls(
-            id=n.id, userId=n.user_id, type=n.type,
-            title=n.title, message=n.message, read=n.read,
-            linkUrl=n.link_url, createdAt=n.created_at,
-        )
+    link_url: Optional[str] = None
+    pickup_id: Optional[str] = None
+    complaint_id: Optional[str] = None
+    created_at: datetime
+    model_config = ConfigDict(from_attributes=True, alias_generator=to_camel, populate_by_name=True)

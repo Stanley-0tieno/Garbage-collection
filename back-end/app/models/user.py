@@ -17,11 +17,12 @@ class User(Base):
     last_name:  Mapped[str]  = mapped_column(String(100))
     email:      Mapped[str]  = mapped_column(String(255), unique=True, index=True)
     phone:      Mapped[str]  = mapped_column(String(30))
-    hashed_password: Mapped[str] = mapped_column(String(255))
+    password_hash: Mapped[str] = mapped_column(String(255))
     role: Mapped[str] = mapped_column(
         Enum("household", "collector", "admin" ,name="user_role"), nullable=False
     )
     points: Mapped[int] = mapped_column(Integer, default=0)
+    is_active: Mapped[bool] = mapped_column(Boolean, default=True)
 
     is_verified:        Mapped[bool]     = mapped_column(Boolean, default=False)
     verification_token: Mapped[str|None] = mapped_column(String(255), nullable=True)

@@ -11,9 +11,9 @@ const API = 'http://localhost:8000/api';
 export class NotificationService {
   private http = inject(HttpClient);
 
-  notifications  = signal<Notification[]>([]);
-  unreadCount    = signal(0);
-  panelOpen      = signal(false);
+  notifications = signal<Notification[]>([]);
+  unreadCount = signal(0);
+  panelOpen = signal(false);
 
   private pollSub: Subscription | null = null;
 
@@ -45,7 +45,7 @@ export class NotificationService {
   closePanel(): void { this.panelOpen.set(false); }
 
   markAllRead(): void {
-    this.http.patch(`${API}/notifications/mark-read`, {}).subscribe(() => {
+    this.http.patch(`${API}/notifications/read-all`, {}).subscribe(() => {
       this.notifications.update(list => list.map(n => ({ ...n, read: true })));
       this.unreadCount.set(0);
     });

@@ -15,38 +15,38 @@ import { PickupRequest } from '../../../../../models/pickup.model';
   styleUrl: './new-complaint.scss'
 })
 export class NewComplaintComponent implements OnInit {
-  private fb         = inject(FormBuilder);
+  private fb = inject(FormBuilder);
   private complaints = inject(ComplaintService);
-  private pickups    = inject(PickupService);
-  private auth       = inject(AuthService);
-  private router     = inject(Router);
+  private pickups = inject(PickupService);
+  private auth = inject(AuthService);
+  private router = inject(Router);
 
-  loading      = signal(false);
+  loading = signal(false);
   errorMessage = signal('');
-  pickupList   = signal<PickupRequest[]>([]);
+  pickupList = signal<PickupRequest[]>([]);
 
   readonly issueTypes = [
-    { value: 'late_pickup',    label: '⏰ Late Pickup',    desc: 'Collector arrived very late' },
-    { value: 'missed_pickup',  label: '❌ Missed Pickup',  desc: 'Pickup was never collected'  },
-    { value: 'bad_service',    label: '😞 Bad Service',    desc: 'Poor handling or attitude'   },
-    { value: 'payment_issue',  label: '💳 Payment Issue',  desc: 'Problem with points/payment' },
-    { value: 'other',          label: '💬 Other',          desc: 'Something else happened'     },
+    { value: 'late_pickup', label: '⏰ Late Pickup', desc: 'Collector arrived very late' },
+    { value: 'missed_pickup', label: '❌ Missed Pickup', desc: 'Pickup was never collected' },
+    { value: 'bad_service', label: '😞 Bad Service', desc: 'Poor handling or attitude' },
+    { value: 'payment_issue', label: '💳 Payment Issue', desc: 'Problem with points/payment' },
+    { value: 'other', label: '💬 Other', desc: 'Something else happened' },
   ];
 
   form: FormGroup = this.fb.group({
     issueType: ['', Validators.required],
-    pickupId:  [''],
-    message:   ['', [Validators.required, Validators.minLength(10)]],
+    pickupId: [''],
+    message: ['', [Validators.required, Validators.minLength(10)]],
   });
 
   get issueType() { return this.form.get('issueType')!; }
-  get message()   { return this.form.get('message')!; }
+  get message() { return this.form.get('message')!; }
 
   ngOnInit(): void {
     const userId = this.auth.currentUser()?.id ?? '';
     this.pickups.getMyPickups(userId).subscribe({
       next: data => this.pickupList.set(data),
-      error: ()  => {}
+      error: () => { }
     });
   }
 
@@ -59,7 +59,10 @@ export class NewComplaintComponent implements OnInit {
     this.loading.set(true);
     this.errorMessage.set('');
 
-    this.complaints.createComplaint(this.form.value).subscribe({
+    const payload = { ...this.form.value };
+    if (!payload.pickupId) delete payload.pickupId;
+
+    this.complaints.createComplaint(payload).subscribe({
       next: () => this.router.navigate(['/household/complaints']),
       error: err => {
         this.errorMessage.set(err?.error?.detail ?? 'Failed to submit complaint. Please try again.');

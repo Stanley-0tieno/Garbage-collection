@@ -19,9 +19,9 @@ async def get_notifications(
         .order_by(Notification.created_at.desc())
         .limit(30)
     )
-    return [NotificationOut.from_orm(n) for n in result.scalars().all()]
+    return result.scalars().all()
 
-@router.patch("/mark-read", response_model=dict)
+@router.patch("/read-all", response_model=dict)
 async def mark_all_read(
     db: AsyncSession = Depends(get_db),
     current_user=Depends(get_current_user),

@@ -29,6 +29,14 @@ class Settings(BaseSettings):
     # Frontend URL (for confirmation links)
     FRONTEND_URL: str = "http://localhost:4200"
 
+    # M-Pesa Daraja Config
+    MPESA_CONSUMER_KEY: str = ""
+    MPESA_CONSUMER_SECRET: str = ""
+    MPESA_SHORTCODE: str = ""
+    MPESA_PASSKEY: str = ""
+    MPESA_CALLBACK_URL: str = ""
+    MPESA_ENV: str = "sandbox"
+
     model_config = SettingsConfigDict(
         env_file=".env",
         extra="ignore",

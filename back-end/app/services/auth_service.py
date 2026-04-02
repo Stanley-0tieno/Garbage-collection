@@ -34,10 +34,11 @@ async def register_user(payload: SignupRequest, db: AsyncSession) -> dict:
         last_name=payload.lastName,
         email=payload.email,
         phone=payload.phone,
-        hashed_password=hash_password(payload.password),
+        password_hash=hash_password(payload.password),
         role=payload.role,
         verification_token=verification_token,
         is_verified=False,
+        is_active=True,
     )
     db.add(user)
     await db.commit()
@@ -68,7 +69,7 @@ async def login_user(payload: LoginRequest, db: AsyncSession) -> AuthResponse:
         detail="Invalid email or password.",
     )
 
-    if not user or not verify_password(payload.password, user.hashed_password):
+    if not user or not verify_password(payload.password, user.password_hash):
         raise invalid
 
     if not user.is_verified:
@@ -78,7 +79,7 @@ async def login_user(payload: LoginRequest, db: AsyncSession) -> AuthResponse:
         )
 
     token = create_access_token(subject=user.id)
-    return AuthResponse(user=UserOut.from_orm_user(user), token=token)
+    return AuthResponse(user=UserOut.model_validate(user), token=token)
 
 
 async def verify_email(token: str, db: AsyncSession) -> dict:

@@ -19,14 +19,14 @@ async def create_complaint(
     complaint = Complaint(
         user_id=current_user.id,
         user_role=current_user.role,
-        issue_type=payload.issueType,
-        pickup_id=payload.pickupId,
+        issue_type=payload.issue_type,
+        pickup_id=payload.pickup_id,
         message=payload.message,
     )
     db.add(complaint)
     await db.commit()
     await db.refresh(complaint)
-    return ComplaintOut.from_orm_complaint(complaint)
+    return complaint
 
 @router.get("/my", response_model=list[ComplaintOut])
 async def my_complaints(
@@ -38,7 +38,7 @@ async def my_complaints(
         .where(Complaint.user_id == current_user.id)
         .order_by(Complaint.created_at.desc())
     )
-    return [ComplaintOut.from_orm_complaint(c) for c in result.scalars().all()]
+    return result.scalars().all()
 
 # Admin only
 @router.get("", response_model=list[ComplaintOut])
@@ -51,7 +51,7 @@ async def all_complaints(
     result = await db.execute(
         select(Complaint).order_by(Complaint.created_at.desc())
     )
-    return [ComplaintOut.from_orm_complaint(c) for c in result.scalars().all()]
+    return result.scalars().all()
 
 @router.patch("/{complaint_id}", response_model=ComplaintOut)
 async def resolve_complaint(
@@ -66,7 +66,7 @@ async def resolve_complaint(
     if not complaint:
         raise HTTPException(status_code=404, detail="Complaint not found.")
     complaint.status = payload.status
-    complaint.admin_note = payload.adminNote
+    complaint.admin_note = payload.admin_note
 
     # Notify the user
     if payload.status == "RESOLVED":
@@ -74,11 +74,12 @@ async def resolve_complaint(
             user_id=complaint.user_id,
             type="complaint_resolved",
             title="Your complaint has been resolved",
-            message=payload.adminNote or "An admin has resolved your complaint.",
+            message=payload.admin_note or "An admin has resolved your complaint.",
             link_url="/household/complaints" if complaint.user_role == "household" else "/collector/complaints",
+            complaint_id=complaint.id
         )
         db.add(notif)
 
     await db.commit()
     await db.refresh(complaint)
-    return ComplaintOut.from_orm_complaint(complaint)
+    return complaint

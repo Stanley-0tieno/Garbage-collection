@@ -5,7 +5,7 @@ import { delay } from 'rxjs/operators';
 import { PickupRequest, CreatePickupRequest, PickupStatus } from '../../models/pickup.model';
 
 const API_URL  = 'http://localhost:8000/api';
-const USE_MOCK = true;
+const USE_MOCK = false;
 const STORE_KEY = 'w2w_pickups';
 
 @Injectable({ providedIn: 'root' })

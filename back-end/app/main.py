@@ -11,6 +11,9 @@ from app.db.session import Base, engine
 from app.api.v1.auth import router as auth_router
 from app.api.v1.complaints import router as complaints_router
 from app.api.v1.notifications import router as notifications_router
+from app.api.v1.pickup import router as pickup_router
+from app.api.v1.payments import router as payments_router
+from app.api.v1.admin import router as admin_router
 
 
 logging.basicConfig(level=logging.INFO)
@@ -54,6 +57,9 @@ app.add_middleware(
 app.include_router(auth_router, prefix="/api")
 app.include_router(complaints_router, prefix="/api")
 app.include_router(notifications_router, prefix="/api")
+app.include_router(pickup_router, prefix="/api")
+app.include_router(payments_router, prefix="/api")
+app.include_router(admin_router, prefix="/api")
 
 @app.get("/health", tags=["meta"])
 async def health():

@@ -1,38 +1,32 @@
-from pydantic import BaseModel
+from pydantic import BaseModel, ConfigDict
+from pydantic.alias_generators import to_camel
 from typing import Literal, Optional
 from datetime import datetime
 
 ComplaintStatus = Literal["OPEN", "IN_REVIEW", "RESOLVED", "CLOSED"]
 
 class CreateComplaintRequest(BaseModel):
-    issueType: str
-    pickupId: Optional[str] = None
+    issue_type: str
+    pickup_id: Optional[str] = None
     message: str
+    model_config = ConfigDict(alias_generator=to_camel, populate_by_name=True)
+
 
 class ComplaintOut(BaseModel):
     id: str
-    userId: str
-    userRole: str
-    issueType: str
-    pickupId: Optional[str]
+    user_id: str
+    user_role: str
+    issue_type: str
+    pickup_id: Optional[str]
     message: str
     status: str
-    adminNote: Optional[str]
-    createdAt: datetime
-    updatedAt: datetime
+    admin_note: Optional[str]
+    created_at: datetime
+    updated_at: datetime
 
-    model_config = {"from_attributes": True}
-
-    @classmethod
-    def from_orm_complaint(cls, c) -> "ComplaintOut":
-        return cls(
-            id=c.id, userId=c.user_id, userRole=c.user_role,
-            issueType=c.issue_type, pickupId=c.pickup_id,
-            message=c.message, status=c.status,
-            adminNote=c.admin_note,
-            createdAt=c.created_at, updatedAt=c.updated_at,
-        )
+    model_config = ConfigDict(alias_generator=to_camel, populate_by_name=True, from_attributes=True)
 
 class ResolveComplaintRequest(BaseModel):
     status: ComplaintStatus
-    adminNote: Optional[str] = None
+    admin_note: Optional[str] = None
+    model_config = ConfigDict(alias_generator=to_camel, populate_by_name=True)

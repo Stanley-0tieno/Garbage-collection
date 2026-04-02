@@ -43,12 +43,14 @@
 
       <!-- Pickup reference -->
       <div class="form-section">
-        <div class="field">
-          <label class="form-label">Pickup Reference ID <span class="optional">(optional)</span></label>
-          <p class="form-hint">Enter the pickup ID this report relates to</p>
-          <input type="text" formControlName="pickupId"
-            placeholder="e.g. abc12345-..." />
-        </div>
+        <label class="form-label">Related Pickup Location <span class="optional">(optional)</span></label>
+        <p class="form-hint">Select the specific pickup this report is about</p>
+        <select formControlName="pickupId" class="select-input">
+          <option value="">— None selected —</option>
+          <option *ngFor="let p of pickupList()" [value]="p.id">
+            {{ p.date | date:'MMM d' }} · {{ p.address }} · {{ p.status }}
+          </option>
+        </select>
       </div>
 
       <!-- Notes -->

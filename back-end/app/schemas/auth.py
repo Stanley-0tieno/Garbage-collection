@@ -1,6 +1,6 @@
 from typing import Literal
-from pydantic import BaseModel, EmailStr, Field
-
+from pydantic import BaseModel, EmailStr, Field, ConfigDict
+from pydantic.alias_generators import to_camel
 
 UserRole = Literal["household", "collector", "admin"]
 
@@ -18,28 +18,16 @@ class LoginRequest(BaseModel):
     password: str
 
 class UserOut(BaseModel):
+    model_config = ConfigDict(from_attributes=True, populate_by_name=True, alias_generator=to_camel)
+
     id:         str
-    firstName:  str
-    lastName:   str
+    first_name:  str
+    last_name:   str
     email:      str
     phone:      str
     role:       UserRole
     points:     int
-
-    model_config = {"from_attributes": True}
-
-    # Map snake_case DB fields → camelCase frontend fields
-    @classmethod
-    def from_orm_user(cls, user) -> "UserOut":
-        return cls(
-            id=user.id,
-            firstName=user.first_name,
-            lastName=user.last_name,
-            email=user.email,
-            phone=user.phone,
-            role=user.role,
-            points=user.points,
-        )
+    is_active:  bool
 
 
 class AuthResponse(BaseModel):

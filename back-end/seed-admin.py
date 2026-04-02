@@ -12,7 +12,7 @@ async def seed():
             last_name="User",
             email="175dollarsnow@gmail.com",
             phone="+254700000000",
-            hashed_password=hash_password("Adminpass123!"),
+            password_hash=hash_password("Adminpass123!"),
             role="admin",
             is_verified=True,
         )
