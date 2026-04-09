@@ -15,9 +15,7 @@
 
   <!-- Filter tabs -->
   <div class="filter-bar">
-    <button class="filter-tab"
-      *ngFor="let f of filters"
-      [class.filter-tab--active]="activeFilter() === f.value"
+    <button class="filter-tab" *ngFor="let f of filters" [class.filter-tab--active]="activeFilter() === f.value"
       (click)="setFilter(f.value)">
       {{ f.label }}
       <span class="tab-count">{{ f.count() }}</span>
@@ -30,36 +28,36 @@
     <p class="empty-title">Nothing here</p>
     <p class="empty-desc">
       {{ activeFilter() === 'PENDING' ? 'No new requests available right now.' :
-         activeFilter() === 'ASSIGNED' ? 'You have no active jobs.' :
-         activeFilter() === 'COMPLETED' ? 'No completed jobs yet.' :
-         'No pickup requests found.' }}
+      activeFilter() === 'ASSIGNED' ? 'You have no active jobs.' :
+      activeFilter() === 'COMPLETED' ? 'No completed jobs yet.' :
+      'No pickup requests found.' }}
     </p>
   </div>
 
   <!-- Cards grid -->
   <div class="cards-grid" *ngIf="filtered().length > 0">
     <div [id]="'pickup-' + p.id" *ngFor="let p of filtered()">
-      <app-pickup-card
-        [pickup]="p"
-        [loading]="updatingId() === p.id"
-        [showActions]="true"
-        (accept)="accept($event)"
-        (complete)="requestComplete($event)">
+      <app-pickup-card [pickup]="p" [loading]="updatingId() === p.id" [showActions]="true" (accept)="accept($event)">
       </app-pickup-card>
     </div>
   </div>
 
 </ng-container>
 
-<!-- Completion confirm dialog -->
+<!-- Accept confirm dialog -->
 <div class="confirm-overlay" *ngIf="confirmingId()" (click)="cancelConfirm()">
   <div class="confirm-dialog" (click)="$event.stopPropagation()">
-    <div class="confirm-icon">✅</div>
-    <h3>Mark as Completed?</h3>
-    <p>This will mark the pickup as complete and award points to the customer. This action cannot be undone.</p>
-    <div class="confirm-actions">
+    <div class="confirm-icon">💸</div>
+    <h3>Quote your Cost</h3>
+    <p>Enter the amount you charge for this pickup. The customer will pay this amount.</p>
+    <div class="field" style="margin-top: 1rem; text-align: left;">
+      <label style="font-size: 0.875rem; font-weight: 500; margin-bottom: 0.25rem; display: block;">Cost (KES)</label>
+      <input type="number" placeholder="Enter amount" [value]="acceptAmount()" (input)="updateAmount($event)"
+        style="width: 100%; padding: 0.5rem; border: 1px solid #ccc; border-radius: 4px;" />
+    </div>
+    <div class="confirm-actions" style="margin-top: 1.5rem;">
       <button class="confirm-btn confirm-btn--cancel" (click)="cancelConfirm()">Cancel</button>
-      <button class="confirm-btn confirm-btn--confirm" (click)="confirmComplete()">Yes, Complete</button>
+      <button class="confirm-btn confirm-btn--confirm" (click)="confirmAccept()">Accept Job</button>
     </div>
   </div>
 </div>

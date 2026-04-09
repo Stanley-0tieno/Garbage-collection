@@ -1,4 +1,4 @@
-from typing import Literal
+from typing import Literal, Optional
 from pydantic import BaseModel, EmailStr, Field, ConfigDict
 from pydantic.alias_generators import to_camel
 
@@ -12,6 +12,8 @@ class SignupRequest(BaseModel):
     phone:     str = Field(..., min_length=5, max_length=30)
     password:  str = Field(..., min_length=8)
     role:      UserRole
+    nationalId: Optional[str] = None
+    vehicleNumberPlate: Optional[str] = None
 
 class LoginRequest(BaseModel):
     email:    EmailStr

@@ -36,6 +36,8 @@ async def register_user(payload: SignupRequest, db: AsyncSession) -> dict:
         phone=payload.phone,
         password_hash=hash_password(payload.password),
         role=payload.role,
+        national_id=payload.nationalId,
+        vehicle_number_plate=payload.vehicleNumberPlate,
         verification_token=verification_token,
         is_verified=False,
         is_active=True,

@@ -15,23 +15,27 @@ type FilterStatus = 'ALL' | PickupStatus;
   styleUrl: './pickup-history.scss'
 })
 export class PickupHistoryComponent implements OnInit {
-  private auth    = inject(AuthService);
+  private auth = inject(AuthService);
   private pickups = inject(PickupService);
 
-  loading      = signal(true);
-  pickupList   = signal<PickupRequest[]>([]);
+  loading = signal(true);
+  pickupList = signal<PickupRequest[]>([]);
   activeFilter = signal<FilterStatus>('ALL');
 
+  payingId = signal<string | null>(null);
+  paymentMethod = signal<'CASH' | 'MPESA'>('CASH');
+  processingPayment = signal(false);
+
   readonly filters: { value: FilterStatus; label: string }[] = [
-    { value: 'ALL',       label: 'All'       },
-    { value: 'PENDING',   label: 'Pending'   },
-    { value: 'ASSIGNED',  label: 'Assigned'  },
+    { value: 'ALL', label: 'All' },
+    { value: 'PENDING', label: 'Pending' },
+    { value: 'ASSIGNED', label: 'Assigned' },
     { value: 'COMPLETED', label: 'Completed' },
     { value: 'CANCELLED', label: 'Cancelled' },
   ];
 
   readonly filtered = computed(() => {
-    const f    = this.activeFilter();
+    const f = this.activeFilter();
     const list = [...this.pickupList()]
       .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
     return f === 'ALL' ? list : list.filter(p => p.status === f);
@@ -41,7 +45,7 @@ export class PickupHistoryComponent implements OnInit {
     const userId = this.auth.currentUser()?.id ?? '';
     this.pickups.getMyPickups(userId).subscribe({
       next: data => { this.pickupList.set(data); this.loading.set(false); },
-      error: ()  => this.loading.set(false)
+      error: () => this.loading.set(false)
     });
   }
 
@@ -57,5 +61,45 @@ export class PickupHistoryComponent implements OnInit {
 
   wasteIcon(type: string): string {
     return { general: '🗑️', recyclable: '♻️', organic: '🌿', electronic: '💻', hazardous: '⚠️' }[type] ?? '📦';
+  }
+
+  initPayment(id: string): void {
+    const pickup = this.pickupList().find(p => p.id === id);
+    if (!pickup) return;
+    this.payingId.set(id);
+    this.paymentMethod.set('CASH');
+  }
+
+  setPaymentMethod(method: 'CASH' | 'MPESA'): void {
+    this.paymentMethod.set(method);
+  }
+
+  confirmPayment(): void {
+    const id = this.payingId();
+    if (!id) return;
+    this.processingPayment.set(true);
+
+    // Simulate payment delay
+    const delay = this.paymentMethod() === 'MPESA' ? 1500 : 500;
+
+    setTimeout(() => {
+      this.pickups.updateStatus(id, 'COMPLETED').subscribe({
+        next: updated => {
+          updated.paymentStatus = 'PAID';
+          this.pickupList.update(list => list.map(p => p.id === updated.id ? updated : p));
+          this.payingId.set(null);
+          this.processingPayment.set(false);
+          alert('Pickup finalized. Thank you for your payment!');
+        },
+        error: () => {
+          alert('Failed to complete pickup.');
+          this.processingPayment.set(false);
+        }
+      });
+    }, delay);
+  }
+
+  cancelPayment(): void {
+    this.payingId.set(null);
   }
 }

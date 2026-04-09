@@ -15,7 +15,6 @@ export interface WasteOption {
   label: string;
   icon: string;
   desc: string;
-  basePrice: number;
 }
 
 @Component({
@@ -26,74 +25,49 @@ export interface WasteOption {
   styleUrl: './schedule-pickup.scss'
 })
 export class SchedulePickupComponent implements OnDestroy {
-  private fb      = inject(FormBuilder);
-  private auth    = inject(AuthService);
+  private fb = inject(FormBuilder);
+  private auth = inject(AuthService);
   private pickups = inject(PickupService);
   private payment = inject(PaymentService);
-  private router  = inject(Router);
-  private http    = inject(HttpClient);
+  private router = inject(Router);
+  private http = inject(HttpClient);
 
   currentStep = signal(1);
-  totalSteps  = 4;
+  totalSteps = 3;
 
-  loading        = signal(false);
-  locating       = signal(false);
-  locationError  = signal('');
-  errorMessage   = signal('');
-  imagePreview   = signal<string | null>(null);
+  loading = signal(false);
+  locating = signal(false);
+  locationError = signal('');
+  errorMessage = signal('');
+  imagePreview = signal<string | null>(null);
 
-  checkoutRequestId = signal('');
-  paymentStatus     = signal<'idle' | 'sending' | 'waiting' | 'paid' | 'failed'>('idle');
-  paymentMessage    = signal('');
-  pollCount         = signal(0);
-  pollSub?: Subscription;
-  createdPickupId   = signal('');
-
-  readonly amount = computed(() => {
-    const type   = this.detailsForm.get('wasteType')?.value as WasteType;
-    const weight = Number(this.detailsForm.get('weightEstimate')?.value ?? 1);
-    const base   = this.wasteOptions.find(o => o.value === type)?.basePrice ?? 200;
-    return Math.max(base, Math.round(base * weight * 0.8));
-  });
+  createdPickupId = signal('');
 
   readonly wasteOptions: WasteOption[] = [
-    { value: 'general',    label: 'General Waste',  icon: '🗑️', desc: 'Everyday household waste',     basePrice: 150 },
-    { value: 'recyclable', label: 'Recyclable',     icon: '♻️', desc: 'Paper, plastic, glass, metal', basePrice: 100 },
-    { value: 'organic',    label: 'Organic',        icon: '🌿', desc: 'Food scraps, garden waste',    basePrice: 120 },
-    { value: 'electronic', label: 'Electronic',     icon: '💻', desc: 'Old electronics & gadgets',    basePrice: 300 },
-    { value: 'hazardous',  label: 'Hazardous',      icon: '⚠️', desc: 'Chemicals, batteries, paint', basePrice: 500 },
-  ];
-
-  readonly weightOptions = [
-    { value: 1, label: '< 5 kg',   desc: 'Small bag'   },
-    { value: 2, label: '5–15 kg',  desc: 'Medium load' },
-    { value: 3, label: '15–30 kg', desc: 'Large load'  },
-    { value: 5, label: '30+ kg',   desc: 'Bulk waste'  },
+    { value: 'general', label: 'General Waste', icon: '🗑️', desc: 'Everyday household waste' },
+    { value: 'recyclable', label: 'Recyclable', icon: '♻️', desc: 'Paper, plastic, glass, metal' },
+    { value: 'organic', label: 'Organic', icon: '🌿', desc: 'Food scraps, garden waste' },
+    { value: 'electronic', label: 'Electronic', icon: '💻', desc: 'Old electronics & gadgets' },
+    { value: 'hazardous', label: 'Hazardous', icon: '⚠️', desc: 'Chemicals, batteries, paint' },
   ];
 
   readonly minDate = new Date(Date.now() + 86400000).toISOString().split('T')[0];
 
   detailsForm: FormGroup = this.fb.group({
-    wasteType:      ['', Validators.required],
-    weightEstimate: [1,  Validators.required],
-    date:           ['', Validators.required],
-    address:        ['', [Validators.required, Validators.minLength(5)]],
-    notes:          [''],
-    imageUrl:       ['']
+    wasteType: [[] as WasteType[], [Validators.required, Validators.minLength(1)]],
+    date: ['', Validators.required],
+    address: ['', [Validators.required, Validators.minLength(5)]],
+    notes: [''],
+    imageUrl: ['']
   });
 
-  paymentForm: FormGroup = this.fb.group({
-    phone: ['', [Validators.required, Validators.pattern(/^(07|01)\d{8}$/)]]
-  });
+  get wasteType() { return this.detailsForm.get('wasteType')!; }
+  get date() { return this.detailsForm.get('date')!; }
+  get address() { return this.detailsForm.get('address')!; }
 
-  get wasteType()      { return this.detailsForm.get('wasteType')!; }
-  get date()           { return this.detailsForm.get('date')!; }
-  get address()        { return this.detailsForm.get('address')!; }
-  get weightEstimate() { return this.detailsForm.get('weightEstimate')!; }
-  get phone()          { return this.paymentForm.get('phone')!; }
-
-  get selectedWaste()  { return this.wasteOptions.find(o => o.value === this.wasteType.value); }
-  get selectedWeight() { return this.weightOptions.find(w => w.value === this.weightEstimate.value); }
+  get selectedWastes() {
+    return this.wasteOptions.filter(o => (this.wasteType.value as WasteType[]).includes(o.value));
+  }
 
   nextStep(): void {
     if (this.currentStep() === 1) {
@@ -107,8 +81,14 @@ export class SchedulePickupComponent implements OnDestroy {
     if (this.currentStep() > 1) this.currentStep.update(s => s - 1);
   }
 
-  selectWaste(v: WasteType) { this.wasteType.setValue(v); }
-  selectWeight(v: number)   { this.weightEstimate.setValue(v); }
+  selectWaste(v: WasteType) {
+    const current = this.wasteType.value as WasteType[];
+    if (current.includes(v)) {
+      this.wasteType.setValue(current.filter(i => i !== v));
+    } else {
+      this.wasteType.setValue([...current, v]);
+    }
+  }
 
   onImageSelected(event: Event): void {
     const file = (event.target as HTMLInputElement).files?.[0];
@@ -148,52 +128,22 @@ export class SchedulePickupComponent implements OnDestroy {
     );
   }
 
-  confirmAndPay(): void {
+  createPickup(): void {
     this.loading.set(true);
     this.errorMessage.set('');
     const userId = this.auth.currentUser()?.id ?? '';
-    this.pickups.createPickup(userId, { ...this.detailsForm.value, amount: this.amount() }).subscribe({
-      next: pickup => { this.createdPickupId.set(pickup.id); this.loading.set(false); this.currentStep.set(4); },
-      error: err => { this.errorMessage.set(err?.error?.detail ?? 'Failed to create pickup.'); this.loading.set(false); }
-    });
-  }
-
-  initiatePayment(): void {
-    if (this.paymentForm.invalid) { this.paymentForm.markAllAsTouched(); return; }
-    this.paymentStatus.set('sending');
-    this.errorMessage.set('');
-    this.payment.initiatePayment({ pickupId: this.createdPickupId(), phone: this.phone.value, amount: this.amount() }).subscribe({
-      next: res => { this.checkoutRequestId.set(res.checkoutRequestId); this.paymentMessage.set(res.message); this.paymentStatus.set('waiting'); this.startPolling(); },
-      error: err => { this.paymentStatus.set('failed'); this.errorMessage.set(err?.error?.detail ?? 'Failed to initiate payment.'); }
-    });
-  }
-
-  private startPolling(): void {
-    this.pollCount.set(0);
-    this.pollSub = interval(2000).pipe(
-      switchMap(() => this.payment.checkStatus(this.checkoutRequestId())),
-      takeWhile(() => this.paymentStatus() === 'waiting')
-    ).subscribe({
-      next: res => {
-        this.pollCount.update(n => n + 1);
-        if (res.status === 'PAID') {
-          this.paymentStatus.set('paid');
-          this.pollSub?.unsubscribe();
-          setTimeout(() => this.router.navigate(['/household/dashboard'], { queryParams: { booked: 'true' } }), 2500);
-        } else if (res.status === 'FAILED' || this.pollCount() > 30) {
-          this.paymentStatus.set('failed');
-          this.paymentMessage.set('Payment not completed. Please retry.');
-          this.pollSub?.unsubscribe();
-        }
+    this.pickups.createPickup(userId, { ...this.detailsForm.value }).subscribe({
+      next: pickup => {
+        this.createdPickupId.set(pickup.id);
+        this.loading.set(false);
+        this.router.navigate(['/household/dashboard'], { queryParams: { booked: 'true' } });
+      },
+      error: err => {
+        this.errorMessage.set(err?.error?.detail ?? 'Failed to create pickup.');
+        this.loading.set(false);
       }
     });
   }
 
-  retryPayment(): void {
-    this.paymentStatus.set('idle');
-    this.paymentMessage.set('');
-    this.errorMessage.set('');
-  }
-
-  ngOnDestroy(): void { this.pollSub?.unsubscribe(); }
+  ngOnDestroy(): void { }
 }

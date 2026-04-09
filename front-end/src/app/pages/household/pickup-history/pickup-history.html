@@ -13,17 +13,17 @@
       <p class="page-subtitle">All your waste collection requests</p>
     </div>
     <a routerLink="/household/schedule-pickup" class="btn-primary">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+        <line x1="12" y1="5" x2="12" y2="19" />
+        <line x1="5" y1="12" x2="19" y2="12" />
+      </svg>
       New Pickup
     </a>
   </div>
 
   <!-- Filter tabs -->
   <div class="filter-tabs">
-    <button
-      class="filter-tab"
-      *ngFor="let f of filters"
-      [class.filter-tab--active]="activeFilter() === f.value"
+    <button class="filter-tab" *ngFor="let f of filters" [class.filter-tab--active]="activeFilter() === f.value"
       (click)="setFilter(f.value)">
       {{ f.label }}
     </button>
@@ -57,30 +57,98 @@
 
       <div class="pickup-card__body">
         <div class="pickup-detail">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+            <rect x="3" y="4" width="18" height="18" rx="2" />
+            <line x1="3" y1="10" x2="21" y2="10" />
+          </svg>
           <span>{{ pickup.date | date:'EEEE, MMM d, y' }}</span>
         </div>
         <div class="pickup-detail">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/></svg>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+            <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z" />
+            <circle cx="12" cy="10" r="3" />
+          </svg>
           <span>{{ pickup.address }}</span>
         </div>
         <div class="pickup-detail" *ngIf="pickup.collectorName">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+            <path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2" />
+            <circle cx="12" cy="7" r="4" />
+          </svg>
           <span>{{ pickup.collectorName }}</span>
         </div>
         <div class="pickup-detail" *ngIf="pickup.notes">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+            <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z" />
+            <polyline points="14 2 14 8 20 8" />
+          </svg>
           <span class="notes-text">{{ pickup.notes }}</span>
+        </div>
+        <div class="pickup-detail" *ngIf="pickup.amount">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+            <rect x="2" y="6" width="20" height="12" rx="2" ry="2" />
+            <line x1="2" y1="10" x2="22" y2="10" />
+          </svg>
+          <span style="font-weight: 600; color: #10b981;">Cost: KES {{ pickup.amount }}</span>
         </div>
       </div>
 
-      <div class="pickup-card__footer" *ngIf="pickup.pointsEarned">
-        <span class="points-earned">
+      <div class="pickup-card__footer">
+        <span class="points-earned" *ngIf="pickup.pointsEarned">
           🏆 +{{ pickup.pointsEarned }} points earned
         </span>
+        <button *ngIf="pickup.status === 'ASSIGNED'" class="btn-sm btn-mark-complete"
+          style="background: #10b981; color: white; border-radius: 4px; padding: 4px 8px; border: none; cursor: pointer; float: right;"
+          (click)="initPayment(pickup.id)">
+          Mark Complete & Pay
+        </button>
       </div>
 
     </div>
   </div>
 
 </ng-container>
+
+<!-- Payment Modal -->
+<div class="confirm-overlay" *ngIf="payingId()" (click)="cancelPayment()">
+  <div class="confirm-dialog" (click)="$event.stopPropagation()">
+    <div class="confirm-icon">💳</div>
+    <h3 style="margin-top: 10px; font-size: 1.25rem; font-weight: 600;">Complete & Pay</h3>
+    <p style="margin-top: 8px; color: #6b7280; font-size: 0.95rem;">Please select how you would like to pay the
+      collector for this pickup.</p>
+
+    <div style="margin-top: 1.5rem; display: flex; flex-direction: column; gap: 0.75rem;">
+      <label
+        style="display: flex; align-items: center; padding: 12px; border: 1px solid #e5e7eb; border-radius: 8px; cursor: pointer;"
+        [style.border-color]="paymentMethod() === 'CASH' ? '#10b981' : '#e5e7eb'"
+        [style.background-color]="paymentMethod() === 'CASH' ? '#f0fdf4' : 'transparent'">
+        <input type="radio" name="paymentMethod" value="CASH" [checked]="paymentMethod() === 'CASH'"
+          (change)="setPaymentMethod('CASH')" style="margin-right: 12px;">
+        <span style="font-weight: 500;">Pay by Cash</span>
+        <span style="margin-left: auto; color: #6b7280; font-size: 0.85rem;">Pay collector on arrival</span>
+      </label>
+
+      <label
+        style="display: flex; align-items: center; padding: 12px; border: 1px solid #e5e7eb; border-radius: 8px; cursor: pointer;"
+        [style.border-color]="paymentMethod() === 'MPESA' ? '#10b981' : '#e5e7eb'"
+        [style.background-color]="paymentMethod() === 'MPESA' ? '#f0fdf4' : 'transparent'">
+        <input type="radio" name="paymentMethod" value="MPESA" [checked]="paymentMethod() === 'MPESA'"
+          (change)="setPaymentMethod('MPESA')" style="margin-right: 12px;">
+        <span style="font-weight: 500; color: #1fb141;">M-PESA (Simulated)</span>
+        <span style="margin-left: auto; color: #6b7280; font-size: 0.85rem;">Pay via mobile money</span>
+      </label>
+    </div>
+
+    <div style="margin-top: 1.5rem; display: flex; gap: 10px;">
+      <button
+        style="flex: 1; padding: 10px; border-radius: 6px; border: 1px solid #d1d5db; background: white; color: #374151; cursor: pointer; font-weight: 500;"
+        (click)="cancelPayment()">Cancel</button>
+      <button
+        style="flex: 1; padding: 10px; border-radius: 6px; border: none; background: #10b981; color: white; cursor: pointer; font-weight: 500; display: flex; justify-content: center; align-items: center;"
+        (click)="confirmPayment()" [disabled]="processingPayment()">
+        <span *ngIf="!processingPayment()">Confirm Payment</span>
+        <span *ngIf="processingPayment()">Processing...</span>
+      </button>
+    </div>
+  </div>
+</div>

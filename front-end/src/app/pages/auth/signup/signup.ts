@@ -13,28 +13,50 @@ import { UserRole } from '../../../models/user.model';
   styleUrl: './signup.scss'
 })
 export class SignupComponent {
-  private fb   = inject(FormBuilder);
+  private fb = inject(FormBuilder);
   private auth = inject(AuthService);
 
-  loading      = signal(false);
+  loading = signal(false);
   errorMessage = signal('');
   showPassword = signal(false);
 
   form: FormGroup = this.fb.group({
     firstName: ['', [Validators.required, Validators.minLength(2)]],
-    lastName:  ['', [Validators.required, Validators.minLength(2)]],
-    email:     ['', [Validators.required, Validators.email]],
-    phone:     ['', [Validators.required, Validators.pattern(/^[+\d\s\-()]{7,15}$/)]],
-    role:      ['household' as UserRole, Validators.required],
-    password:  ['', [Validators.required, Validators.minLength(6)]]
-  });  // ← fb.group() ends cleanly here, nothing after it
+    lastName: ['', [Validators.required, Validators.minLength(2)]],
+    email: ['', [Validators.required, Validators.email]],
+    phone: ['', [Validators.required, Validators.pattern(/^[+\d\s\-()]{7,15}$/)]],
+    role: ['household' as UserRole, Validators.required],
+    password: ['', [Validators.required, Validators.minLength(6)]],
+    nationalId: [''],
+    vehicleNumberPlate: ['']
+  });
+
+  constructor() {
+    this.form.get('role')?.valueChanges.subscribe(role => {
+      const nationalIdCtrl = this.form.get('nationalId');
+      const vehicleCtrl = this.form.get('vehicleNumberPlate');
+
+      if (role === 'collector') {
+        nationalIdCtrl?.setValidators([Validators.required]);
+        vehicleCtrl?.setValidators([Validators.required]);
+      } else {
+        nationalIdCtrl?.clearValidators();
+        vehicleCtrl?.clearValidators();
+      }
+
+      nationalIdCtrl?.updateValueAndValidity();
+      vehicleCtrl?.updateValueAndValidity();
+    });
+  }
 
   get firstName() { return this.form.get('firstName')!; }
-  get lastName()  { return this.form.get('lastName')!; }
-  get email()     { return this.form.get('email')!; }
-  get phone()     { return this.form.get('phone')!; }
-  get role()      { return this.form.get('role')!; }
-  get password()  { return this.form.get('password')!; }
+  get lastName() { return this.form.get('lastName')!; }
+  get email() { return this.form.get('email')!; }
+  get phone() { return this.form.get('phone')!; }
+  get role() { return this.form.get('role')!; }
+  get password() { return this.form.get('password')!; }
+  get nationalId() { return this.form.get('nationalId')!; }
+  get vehicleNumberPlate() { return this.form.get('vehicleNumberPlate')!; }
 
   togglePassword() { this.showPassword.update(v => !v); }
 
@@ -49,8 +71,8 @@ export class SignupComponent {
       error: err => {
         // FastAPI puts error text in `detail`, not `message`
         const msg = err?.error?.detail
-                 ?? err?.error?.message
-                 ?? 'Something went wrong. Please try again.';
+          ?? err?.error?.message
+          ?? 'Something went wrong. Please try again.';
         this.errorMessage.set(msg);
         this.loading.set(false);
       }

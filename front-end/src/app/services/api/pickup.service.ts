@@ -4,7 +4,7 @@ import { Observable, of, throwError } from 'rxjs';
 import { delay } from 'rxjs/operators';
 import { PickupRequest, CreatePickupRequest, PickupStatus } from '../../models/pickup.model';
 
-const API_URL  = 'http://localhost:8000/api';
+const API_URL = 'http://localhost:8000/api';
 const USE_MOCK = false;
 const STORE_KEY = 'w2w_pickups';
 
@@ -31,9 +31,9 @@ export class PickupService {
   }
 
   // ── Update status (collector) ──────────────────────────
-  updateStatus(pickupId: string, status: PickupStatus): Observable<PickupRequest> {
-    if (USE_MOCK) return this.mockUpdateStatus(pickupId, status);
-    return this.http.patch<PickupRequest>(`${API_URL}/pickups/${pickupId}/status`, { status });
+  updateStatus(pickupId: string, status: PickupStatus, amount?: number): Observable<PickupRequest> {
+    if (USE_MOCK) return this.mockUpdateStatus(pickupId, status, amount);
+    return this.http.patch<PickupRequest>(`${API_URL}/pickups/${pickupId}/status`, { status, amount });
   }
 
   // ── Helpers ────────────────────────────────────────────
@@ -76,7 +76,7 @@ export class PickupService {
     return of(newPickup).pipe(delay(600));
   }
 
-  private mockUpdateStatus(pickupId: string, status: PickupStatus): Observable<PickupRequest> {
+  private mockUpdateStatus(pickupId: string, status: PickupStatus, amount?: number): Observable<PickupRequest> {
     const all = this.load();
     const idx = all.findIndex(p => p.id === pickupId);
     if (idx === -1) return throwError(() => ({ error: { message: 'Pickup not found' } }));
@@ -84,8 +84,9 @@ export class PickupService {
     all[idx] = {
       ...all[idx],
       status,
+      ...(amount !== undefined ? { amount } : {}),
       ...(status === 'COMPLETED' ? {
-        completedAt:  new Date().toISOString(),
+        completedAt: new Date().toISOString(),
         pointsEarned: 50
       } : {})
     };

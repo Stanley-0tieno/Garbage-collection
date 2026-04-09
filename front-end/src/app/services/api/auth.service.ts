@@ -5,19 +5,19 @@ import { Observable, throwError } from 'rxjs';
 import { tap, catchError } from 'rxjs/operators';
 import { User, LoginRequest, SignupRequest, AuthResponse } from '../../models/user.model';
 
-const API_URL   = 'http://localhost:8000/api';
+const API_URL = 'http://localhost:8000/api';
 const TOKEN_KEY = 'w2w_token';
-const USER_KEY  = 'w2w_user';
+const USER_KEY = 'w2w_user';
 
 @Injectable({ providedIn: 'root' })
 export class AuthService {
-  private http   = inject(HttpClient);
+  private http = inject(HttpClient);
   private router = inject(Router);
 
   private _currentUser = signal<User | null>(this.loadUser());
   readonly currentUser = this._currentUser.asReadonly();
-  readonly isLoggedIn  = computed(() => !!this._currentUser());
-  readonly userRole    = computed(() => this._currentUser()?.role ?? null);
+  readonly isLoggedIn = computed(() => !!this._currentUser());
+  readonly userRole = computed(() => this._currentUser()?.role ?? null);
 
   login(payload: LoginRequest): Observable<AuthResponse> {
     return this.http.post<AuthResponse>(`${API_URL}/auth/login`, payload).pipe(
@@ -60,7 +60,10 @@ export class AuthService {
     localStorage.setItem(TOKEN_KEY, res.token);
     localStorage.setItem(USER_KEY, JSON.stringify(user));
     this._currentUser.set(user);
-    const route = user.role === 'household' ? '/household/dashboard' : '/collector/dashboard';
+    let route = '/household/dashboard';
+    if (user.role === 'collector') route = '/collector/dashboard';
+    else if (user.role === 'admin') route = '/admin/dashboard';
+
     this.router.navigate([route]);
   }
 

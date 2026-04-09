@@ -18,19 +18,20 @@ type Filter = 'ALL' | PickupStatus;
 })
 export class PickupRequests implements OnInit {
   private pickupService = inject(PickupService);
-  private toast         = inject(ToastService);
-  private route         = inject(ActivatedRoute);
+  private toast = inject(ToastService);
+  private route = inject(ActivatedRoute);
 
-  loading      = signal(true);
-  pickupList   = signal<PickupRequest[]>([]);
+  loading = signal(true);
+  pickupList = signal<PickupRequest[]>([]);
   activeFilter = signal<Filter>('ALL');
-  updatingId   = signal<string | null>(null);
-  confirmingId = signal<string | null>(null); // for completion confirm dialog
+  updatingId = signal<string | null>(null);
+  confirmingId = signal<string | null>(null); // for accept confirm dialog
+  acceptAmount = signal<number | null>(null);
 
   readonly filters: { value: Filter; label: string; count: () => number }[] = [
-    { value: 'ALL',       label: 'All',       count: () => this.pickupList().length },
-    { value: 'PENDING',   label: 'Pending',   count: () => this.pickupList().filter(p => p.status === 'PENDING').length },
-    { value: 'ASSIGNED',  label: 'My Jobs',   count: () => this.pickupList().filter(p => p.status === 'ASSIGNED').length },
+    { value: 'ALL', label: 'All', count: () => this.pickupList().length },
+    { value: 'PENDING', label: 'Pending', count: () => this.pickupList().filter(p => p.status === 'PENDING').length },
+    { value: 'ASSIGNED', label: 'My Jobs', count: () => this.pickupList().filter(p => p.status === 'ASSIGNED').length },
     { value: 'COMPLETED', label: 'Completed', count: () => this.pickupList().filter(p => p.status === 'COMPLETED').length },
   ];
 
@@ -44,7 +45,7 @@ export class PickupRequests implements OnInit {
   ngOnInit(): void {
     this.pickupService.getAllPickups().subscribe({
       next: data => { this.pickupList.set(data); this.loading.set(false); this.checkHighlight(); },
-      error: ()  => this.loading.set(false)
+      error: () => this.loading.set(false)
     });
   }
 
@@ -61,34 +62,28 @@ export class PickupRequests implements OnInit {
   setFilter(f: Filter) { this.activeFilter.set(f); }
 
   accept(pickup: PickupRequest): void {
-    this.updatingId.set(pickup.id);
-    this.pickupService.updateStatus(pickup.id, 'ASSIGNED').subscribe({
-      next: updated => {
-        this.pickupList.update(list => list.map(p => p.id === updated.id ? updated : p));
-        this.updatingId.set(null);
-        this.toast.success('Job accepted! Good luck with the pickup.');
-      },
-      error: () => { this.updatingId.set(null); this.toast.error('Failed to accept job.'); }
-    });
-  }
-
-  requestComplete(pickup: PickupRequest): void {
     this.confirmingId.set(pickup.id);
+    this.acceptAmount.set(null);
   }
 
-  confirmComplete(): void {
+  updateAmount(event: Event): void {
+    const el = event.target as HTMLInputElement;
+    this.acceptAmount.set(Number(el.value));
+  }
+
+  confirmAccept(): void {
     const id = this.confirmingId();
-    if (!id) return;
+    if (!id || !this.acceptAmount()) return;
     this.updatingId.set(id);
     this.confirmingId.set(null);
 
-    this.pickupService.updateStatus(id, 'COMPLETED').subscribe({
+    this.pickupService.updateStatus(id, 'ASSIGNED', this.acceptAmount()!).subscribe({
       next: updated => {
         this.pickupList.update(list => list.map(p => p.id === updated.id ? updated : p));
         this.updatingId.set(null);
-        this.toast.success('Pickup marked as completed! Points awarded to customer.');
+        this.toast.success('Job accepted! You have offered your cost.');
       },
-      error: () => { this.updatingId.set(null); this.toast.error('Failed to complete pickup.'); }
+      error: () => { this.updatingId.set(null); this.toast.error('Failed to accept job.'); }
     });
   }
 

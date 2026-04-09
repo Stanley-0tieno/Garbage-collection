@@ -24,4 +24,4 @@ async def api_get_all_pickups(user: User = Depends(get_current_user), db: AsyncS
 
 @router.patch("/{pickup_id}/status", response_model=PickupOut)
 async def api_update_pickup_status(pickup_id: str, payload: UpdatePickupStatusRequest, user: User = Depends(get_current_user), db: AsyncSession = Depends(get_db)):
-    return await update_pickup_status(pickup_id, payload.status, user.id, db)
+    return await update_pickup_status(pickup_id, payload.status, user.id, db, amount=payload.amount)

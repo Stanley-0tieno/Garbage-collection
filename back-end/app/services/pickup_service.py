@@ -10,12 +10,11 @@ from app.schemas.pickup import CreatePickupRequest
 async def create_pickup(payload: CreatePickupRequest, user_id: str, db: AsyncSession):
     pickup = Pickup(
         user_id=user_id,
-        waste_type=payload.waste_type,
+        waste_type=", ".join(payload.waste_type),
         date=payload.date,
         address=payload.address,
         notes=payload.notes,
         image_url=payload.image_url,
-        weight_estimate=payload.weight_estimate,
         status="PENDING",
         payment_status="UNPAID",
     )
@@ -46,7 +45,7 @@ async def get_all_pickups(db: AsyncSession):
     result = await db.execute(select(Pickup))
     return result.scalars().all()
 
-async def update_pickup_status(pickup_id: str, new_status: str, collector_id: str, db: AsyncSession):
+async def update_pickup_status(pickup_id: str, new_status: str, collector_id: str, db: AsyncSession, amount: float = None):
     pickup = await db.get(Pickup, pickup_id)
     if not pickup:
         raise HTTPException(status_code=404, detail="Pickup not found")
@@ -54,6 +53,8 @@ async def update_pickup_status(pickup_id: str, new_status: str, collector_id: st
     pickup.status = new_status
     if new_status == "ASSIGNED":
         pickup.collector_id = collector_id
+        if amount is not None:
+            pickup.amount = amount
         notif = Notification(user_id=pickup.user_id, type="pickup_assigned", title="Pickup Assigned", message="A collector has been assigned to your pickup.", pickup_id=pickup.id)
         db.add(notif)
     elif new_status == "COMPLETED":

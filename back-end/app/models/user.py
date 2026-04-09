@@ -21,6 +21,8 @@ class User(Base):
     role: Mapped[str] = mapped_column(
         Enum("household", "collector", "admin" ,name="user_role"), nullable=False
     )
+    national_id: Mapped[str|None] = mapped_column(String(50), nullable=True)
+    vehicle_number_plate: Mapped[str|None] = mapped_column(String(20), nullable=True)
     points: Mapped[int] = mapped_column(Integer, default=0)
     is_active: Mapped[bool] = mapped_column(Boolean, default=True)
 

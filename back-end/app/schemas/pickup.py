@@ -1,20 +1,20 @@
 from pydantic import BaseModel, ConfigDict
 from pydantic.alias_generators import to_camel
-from typing import Literal, Optional
+from typing import Literal, Optional, List
 from datetime import datetime
 
 class CreatePickupRequest(BaseModel):
-    waste_type: str
+    waste_type: List[str]
     date: datetime
     address: str
     notes: Optional[str] = None
     image_url: Optional[str] = None
-    weight_estimate: Optional[int] = None
     
     model_config = ConfigDict(alias_generator=to_camel, populate_by_name=True)
 
 class UpdatePickupStatusRequest(BaseModel):
     status: Literal["ASSIGNED", "COMPLETED", "CANCELLED"]
+    amount: Optional[float] = None
     model_config = ConfigDict(alias_generator=to_camel, populate_by_name=True)
 
 class PickupOut(BaseModel):
