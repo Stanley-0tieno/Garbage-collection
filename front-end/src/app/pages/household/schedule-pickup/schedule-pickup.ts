@@ -1,20 +1,19 @@
-import { Component, inject, signal, computed, OnDestroy } from '@angular/core';
+import { Component, inject, signal, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule, Router } from '@angular/router';
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
 import { HttpClient } from '@angular/common/http';
-import { Subscription, interval } from 'rxjs';
-import { switchMap, takeWhile } from 'rxjs/operators';
 import { AuthService } from '../../../services/api/auth.service';
 import { PickupService } from '../../../services/api/pickup.service';
 import { PaymentService } from '../../../services/api/payment.service';
-import { WasteType } from '../../../models/pickup.model';
+import { WasteType, WASTE_PRICES_PER_KG } from '../../../models/pickup.model';
 
 export interface WasteOption {
   value: WasteType;
   label: string;
   icon: string;
   desc: string;
+  pricePerKg: number;
 }
 
 @Component({
@@ -25,45 +24,42 @@ export interface WasteOption {
   styleUrl: './schedule-pickup.scss'
 })
 export class SchedulePickupComponent implements OnDestroy {
-  private fb = inject(FormBuilder);
-  private auth = inject(AuthService);
-  private pickups = inject(PickupService);
-  private payment = inject(PaymentService);
-  private router = inject(Router);
-  private http = inject(HttpClient);
+  private fb       = inject(FormBuilder);
+  private auth     = inject(AuthService);
+  private pickups  = inject(PickupService);
+  private payment  = inject(PaymentService);
+  private router   = inject(Router);
+  private http     = inject(HttpClient);
 
   currentStep = signal(1);
-  totalSteps = 3;
+  totalSteps  = 3;
 
-  loading = signal(false);
-  locating = signal(false);
+  loading       = signal(false);
+  locating      = signal(false);
   locationError = signal('');
-  errorMessage = signal('');
-  imagePreview = signal<string | null>(null);
-
+  errorMessage  = signal('');
+  imagePreview  = signal<string | null>(null);
   createdPickupId = signal('');
 
+  // Waste options with predefined system prices
   readonly wasteOptions: WasteOption[] = [
-    { value: 'general', label: 'General Waste', icon: '🗑️', desc: 'Everyday household waste' },
-    { value: 'recyclable', label: 'Recyclable', icon: '♻️', desc: 'Paper, plastic, glass, metal' },
-    { value: 'organic', label: 'Organic', icon: '🌿', desc: 'Food scraps, garden waste' },
-    { value: 'electronic', label: 'Electronic', icon: '💻', desc: 'Old electronics & gadgets' },
-    { value: 'hazardous', label: 'Hazardous', icon: '⚠️', desc: 'Chemicals, batteries, paint' },
+    { value: 'general',    label: 'General Waste', icon: '🗑️', desc: 'Everyday household waste',      pricePerKg: WASTE_PRICES_PER_KG['general'] },
+    { value: 'recyclable', label: 'Recyclable',    icon: '♻️', desc: 'Paper, plastic, glass, metal',  pricePerKg: WASTE_PRICES_PER_KG['recyclable'] },
+    { value: 'organic',    label: 'Organic',        icon: '🌿', desc: 'Food scraps, garden waste',     pricePerKg: WASTE_PRICES_PER_KG['organic'] },
+    { value: 'electronic', label: 'Electronic',     icon: '💻', desc: 'Old electronics & gadgets',     pricePerKg: WASTE_PRICES_PER_KG['electronic'] },
+    { value: 'hazardous',  label: 'Hazardous',      icon: '⚠️', desc: 'Chemicals, batteries, paint',  pricePerKg: WASTE_PRICES_PER_KG['hazardous'] },
   ];
 
-  readonly minDate = new Date(Date.now() + 86400000).toISOString().split('T')[0];
-
+  // NOTE: No minDate / date field — date is assigned by the collector
   detailsForm: FormGroup = this.fb.group({
     wasteType: [[] as WasteType[], [Validators.required, Validators.minLength(1)]],
-    date: ['', Validators.required],
-    address: ['', [Validators.required, Validators.minLength(5)]],
-    notes: [''],
-    imageUrl: ['']
+    address:   ['', [Validators.required, Validators.minLength(5)]],
+    notes:     [''],
+    imageUrl:  ['']
   });
 
   get wasteType() { return this.detailsForm.get('wasteType')!; }
-  get date() { return this.detailsForm.get('date')!; }
-  get address() { return this.detailsForm.get('address')!; }
+  get address()   { return this.detailsForm.get('address')!; }
 
   get selectedWastes() {
     return this.wasteOptions.filter(o => (this.wasteType.value as WasteType[]).includes(o.value));
@@ -114,8 +110,10 @@ export class SchedulePickupComponent implements OnDestroy {
     navigator.geolocation.getCurrentPosition(
       pos => {
         const { latitude, longitude } = pos.coords;
-        this.http.get<any>(`https://nominatim.openstreetmap.org/reverse?lat=${latitude}&lon=${longitude}&format=json`).subscribe({
-          next: r => { this.detailsForm.patchValue({ address: r.display_name ?? `${latitude.toFixed(5)}, ${longitude.toFixed(5)}` }); this.locating.set(false); },
+        this.http.get<any>(
+          `https://nominatim.openstreetmap.org/reverse?lat=${latitude}&lon=${longitude}&format=json`
+        ).subscribe({
+          next:  r => { this.detailsForm.patchValue({ address: r.display_name ?? `${latitude.toFixed(5)}, ${longitude.toFixed(5)}` }); this.locating.set(false); },
           error: () => { this.detailsForm.patchValue({ address: `${latitude.toFixed(5)}, ${longitude.toFixed(5)}` }); this.locating.set(false); }
         });
       },
@@ -132,7 +130,9 @@ export class SchedulePickupComponent implements OnDestroy {
     this.loading.set(true);
     this.errorMessage.set('');
     const userId = this.auth.currentUser()?.id ?? '';
-    this.pickups.createPickup(userId, { ...this.detailsForm.value }).subscribe({
+    // Only send fields relevant to CreatePickupRequest (no date)
+    const { wasteType, address, notes, imageUrl } = this.detailsForm.value;
+    this.pickups.createPickup(userId, { wasteType, address, notes, imageUrl }).subscribe({
       next: pickup => {
         this.createdPickupId.set(pickup.id);
         this.loading.set(false);
@@ -145,5 +145,5 @@ export class SchedulePickupComponent implements OnDestroy {
     });
   }
 
-  ngOnDestroy(): void { }
+  ngOnDestroy(): void {}
 }

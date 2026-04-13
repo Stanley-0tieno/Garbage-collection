@@ -18,7 +18,19 @@
     {{ errorMessage() }}
   </div>
 
-  <form [formGroup]="form" (ngSubmit)="submit()" novalidate>
+  <!-- No eligible pickups notice -->
+  <div class="no-pickups-notice" *ngIf="hasNoEligiblePickups()">
+    <div class="notice-icon">📋</div>
+    <h3 class="notice-title">No pickups to complain about yet</h3>
+    <p class="notice-desc">
+      Complaints can only be made about pickups that have been assigned to a collector or completed.
+      You currently have no pickups in those states.
+    </p>
+    <a routerLink="/household/complaints" class="btn-back">Return to Complaints</a>
+  </div>
+
+  <!-- Form — only shown when there are eligible pickups -->
+  <form [formGroup]="form" (ngSubmit)="submit()" novalidate *ngIf="!hasNoEligiblePickups()">
     <div class="form-card">
 
       <!-- Issue type -->
@@ -40,14 +52,23 @@
         </span>
       </div>
 
-      <!-- Related pickup -->
+      <!-- Related pickup — only eligible ones shown -->
       <div class="form-section">
         <label class="form-label">Related Pickup <span class="optional">(optional)</span></label>
         <p class="form-hint">Select the specific pickup this complaint is about</p>
+
+        <!-- Info: why pending pickups are excluded -->
+        <div class="complaint-info-box">
+          <svg viewBox="0 0 20 20" fill="currentColor">
+            <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd"/>
+          </svg>
+          <span>Only pickups that have been assigned or completed are shown. Pending pickups cannot be complained about as the service has not yet started.</span>
+        </div>
+
         <select formControlName="pickupId" class="select-input">
           <option value="">— None selected —</option>
-          <option *ngFor="let p of pickupList()" [value]="p.id">
-            {{ p.date | date:'MMM d, y' }} · {{ p.wasteType }} · {{ p.status }}
+          <option *ngFor="let p of eligiblePickups()" [value]="p.id">
+            {{ pickupLabel(p) }}
           </option>
         </select>
       </div>

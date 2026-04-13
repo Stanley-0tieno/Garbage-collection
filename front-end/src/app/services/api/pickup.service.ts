@@ -4,7 +4,7 @@ import { Observable, of, throwError } from 'rxjs';
 import { delay } from 'rxjs/operators';
 import { PickupRequest, CreatePickupRequest, PickupStatus } from '../../models/pickup.model';
 
-const API_URL = 'http://localhost:8000/api';
+const API_URL  = 'http://localhost:8000/api';
 const USE_MOCK = false;
 const STORE_KEY = 'w2w_pickups';
 
@@ -36,6 +36,12 @@ export class PickupService {
     return this.http.patch<PickupRequest>(`${API_URL}/pickups/${pickupId}/status`, { status, amount });
   }
 
+  // ── Assign date (collector) ────────────────────────────
+  assignDate(pickupId: string, date: string): Observable<PickupRequest> {
+    if (USE_MOCK) return this.mockAssignDate(pickupId, date);
+    return this.http.patch<PickupRequest>(`${API_URL}/pickups/${pickupId}/date`, { date });
+  }
+
   // ── Helpers ────────────────────────────────────────────
   private load(): PickupRequest[] {
     try {
@@ -60,15 +66,19 @@ export class PickupService {
 
   private mockCreate(userId: string, payload: CreatePickupRequest): Observable<PickupRequest> {
     const all = this.load();
+    // Extract area from address (first comma-delimited part)
+    const area = payload.area ?? payload.address?.split(',')[0]?.trim() ?? '';
+
     const newPickup: PickupRequest = {
-      id: 'pickup_' + Date.now(),
+      id:            'pickup_' + Date.now(),
       userId,
-      wasteType: payload.wasteType,
-      date: payload.date,
-      address: payload.address,
-      notes: payload.notes,
-      status: 'PENDING',
-      createdAt: new Date().toISOString(),
+      wasteType:     payload.wasteType,
+      // date is intentionally omitted — set later by collector
+      area,
+      address:       payload.address,
+      notes:         payload.notes,
+      status:        'PENDING',
+      createdAt:     new Date().toISOString(),
       paymentStatus: 'PENDING'
     };
     all.push(newPickup);
@@ -87,11 +97,21 @@ export class PickupService {
       ...(amount !== undefined ? { amount } : {}),
       ...(status === 'COMPLETED' ? {
         completedAt: new Date().toISOString(),
-        pointsEarned: 50
+        pointsEarned: 50,
+        paymentStatus: 'PAID'
       } : {})
     };
     this.save(all);
     return of(all[idx]).pipe(delay(500));
+  }
+
+  private mockAssignDate(pickupId: string, date: string): Observable<PickupRequest> {
+    const all = this.load();
+    const idx = all.findIndex(p => p.id === pickupId);
+    if (idx === -1) return throwError(() => ({ error: { message: 'Pickup not found' } }));
+    all[idx] = { ...all[idx], date };
+    this.save(all);
+    return of(all[idx]).pipe(delay(400));
   }
 
   // ── Seed data for demo ─────────────────────────────────
@@ -100,27 +120,51 @@ export class PickupService {
     const data: PickupRequest[] = [
       {
         id: 'pickup_001', userId: mockUserId,
-        wasteType: 'recyclable', date: '2026-03-10',
-        address: '14 Moi Avenue, Nairobi',
+        wasteType: 'recyclable',
+        date: '2026-03-10',
+        area: 'Westlands',
+        address: '14 Moi Avenue, Westlands, Nairobi',
         status: 'COMPLETED', collectorName: 'John Kamau',
         completedAt: '2026-03-10T10:30:00Z', pointsEarned: 50,
         createdAt: '2026-03-08T08:00:00Z',
-        paymentStatus: 'PENDING'
+        paymentStatus: 'PAID',
+        amount: 240
       },
       {
         id: 'pickup_002', userId: mockUserId,
-        wasteType: 'organic', date: '2026-03-18',
-        address: '14 Moi Avenue, Nairobi',
+        wasteType: 'organic',
+        date: '2026-03-18',
+        area: 'Kilimani',
+        address: '22 Ngong Road, Kilimani, Nairobi',
         status: 'ASSIGNED', collectorName: 'Mary Wanjiku',
         createdAt: '2026-03-15T09:00:00Z',
         paymentStatus: 'PENDING'
       },
       {
         id: 'pickup_003', userId: mockUserId,
-        wasteType: 'general', date: '2026-03-28',
-        address: '14 Moi Avenue, Nairobi',
+        wasteType: 'general',
+        area: 'Westlands',
+        address: '5 Waiyaki Way, Westlands, Nairobi',
         status: 'PENDING',
         createdAt: '2026-03-20T11:00:00Z',
+        paymentStatus: 'PENDING'
+      },
+      {
+        id: 'pickup_004', userId: 'user_other',
+        wasteType: 'electronic',
+        area: 'Karen',
+        address: '10 Karen Road, Karen, Nairobi',
+        status: 'PENDING',
+        createdAt: '2026-03-21T07:00:00Z',
+        paymentStatus: 'PENDING'
+      },
+      {
+        id: 'pickup_005', userId: 'user_other',
+        wasteType: 'hazardous',
+        area: 'Kilimani',
+        address: '8 Argwings Kodhek, Kilimani, Nairobi',
+        status: 'PENDING',
+        createdAt: '2026-03-22T09:30:00Z',
         paymentStatus: 'PENDING'
       }
     ];

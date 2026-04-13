@@ -37,12 +37,19 @@ export class Dashboard implements OnInit {
       .slice(0, 3)
   );
 
-  // Next upcoming pending pickup
-  readonly nextPickup = computed(() => {
+  /**
+   * Next upcoming pickup — date is now optional (assigned by collector).
+   * Only pickups that already have a date assigned AND are still PENDING/ASSIGNED qualify.
+   */
+  readonly nextPickup = computed((): PickupRequest | null => {
     const today = new Date().toISOString().split('T')[0];
     return [...this.pickupList()]
-      .filter(p => p.status === 'PENDING' && p.date >= today)
-      .sort((a, b) => a.date.localeCompare(b.date))[0] ?? null;
+      .filter(p =>
+        (p.status === 'PENDING' || p.status === 'ASSIGNED') &&
+        !!p.date &&                  // only show if a date has been assigned
+        (p.date as string) >= today
+      )
+      .sort((a, b) => (a.date as string).localeCompare(b.date as string))[0] ?? null;
   });
 
   // Points tier system
@@ -63,7 +70,7 @@ export class Dashboard implements OnInit {
   });
 
   readonly pointsProgress = computed(() => {
-    const pts = this.stats().points;
+    const pts  = this.stats().points;
     const tier = this.nextTier();
     const prev = tier === 100 ? 0 : tier === 250 ? 100 : tier === 500 ? 250 : 500;
     return Math.min(100, ((pts - prev) / (tier - prev)) * 100);
@@ -78,14 +85,25 @@ export class Dashboard implements OnInit {
   }
 
   statusClass(status: string): string {
-    return { PENDING: 'badge--pending', ASSIGNED: 'badge--assigned', COMPLETED: 'badge--completed', CANCELLED: 'badge--cancelled' }[status] ?? '';
+    return ({
+      PENDING:   'badge--pending',
+      ASSIGNED:  'badge--assigned',
+      COMPLETED: 'badge--completed',
+      CANCELLED: 'badge--cancelled'
+    } as Record<string, string>)[status] ?? '';
   }
 
   wasteLabel(type: string): string {
-    return { general: 'General Waste', recyclable: 'Recyclable', organic: 'Organic', electronic: 'Electronic', hazardous: 'Hazardous' }[type] ?? type;
+    return ({
+      general: 'General Waste', recyclable: 'Recyclable', organic: 'Organic',
+      electronic: 'Electronic', hazardous: 'Hazardous'
+    } as Record<string, string>)[type] ?? type;
   }
 
   wasteIcon(type: string): string {
-    return { general: '🗑️', recyclable: '♻️', organic: '🌿', electronic: '💻', hazardous: '⚠️' }[type] ?? '📦';
+    return ({
+      general: '🗑️', recyclable: '♻️', organic: '🌿',
+      electronic: '💻', hazardous: '⚠️'
+    } as Record<string, string>)[type] ?? '📦';
   }
 }

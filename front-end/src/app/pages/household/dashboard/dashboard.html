@@ -72,8 +72,7 @@
       </div>
       <div class="impact-bar-wrap">
         <div class="impact-bar">
-          <div class="impact-bar__fill"
-               [style.width.%]="pointsProgress()"></div>
+          <div class="impact-bar__fill" [style.width.%]="pointsProgress()"></div>
         </div>
         <span class="impact-bar-label">{{ stats().points }} / {{ nextTier() }} pts — {{ tierName() }}</span>
       </div>
@@ -85,14 +84,16 @@
       <div class="next-type">
         {{ wasteIcon(nextPickup()!.wasteType) }} {{ wasteLabel(nextPickup()!.wasteType) }}
       </div>
+      <!-- date is guaranteed non-null here because nextPickup() filters to only dated pickups -->
       <div class="next-date">{{ nextPickup()!.date | date:'EEEE, MMMM d' }}</div>
       <div class="next-address">📍 {{ nextPickup()!.address }}</div>
       <span class="badge badge--pending">Scheduled</span>
     </div>
+
     <ng-template #noUpcoming>
       <div class="next-pickup-card next-pickup-card--empty">
         <div class="empty-icon">📭</div>
-        <p>No upcoming pickups</p>
+        <p>No upcoming pickups with a confirmed date yet</p>
         <a routerLink="/household/schedule-pickup" class="btn-primary btn-primary--sm">
           Schedule One
         </a>
@@ -158,7 +159,11 @@
           <div class="pickup-type-icon">{{ wasteIcon(pickup.wasteType) }}</div>
           <div class="pickup-details">
             <span class="pickup-type">{{ wasteLabel(pickup.wasteType) }}</span>
-            <span class="pickup-meta">{{ pickup.date | date:'MMM d, y' }} · {{ pickup.address }}</span>
+            <!-- date is optional now — show placeholder if not yet assigned -->
+            <span class="pickup-meta">
+              {{ pickup.date ? (pickup.date | date:'MMM d, y') : 'Date TBD' }}
+              · {{ pickup.address }}
+            </span>
           </div>
         </div>
         <div class="pickup-right">

@@ -9,6 +9,11 @@ export interface User {
   role: UserRole;
   points?: number;
   token?: string;
+  // Household specific
+  nationalId?: string;
+  // Collector specific
+  businessRegNumber?: string;
+  vehicleNumberPlate?: string;
 }
 
 export interface LoginRequest {
@@ -23,6 +28,11 @@ export interface SignupRequest {
   phone: string;
   password: string;
   role: UserRole;
+  // Household specific
+  nationalId?: string;
+  // Collector specific
+  businessRegNumber?: string;
+  vehicleNumberPlate?: string;
 }
 
 export interface AuthResponse {

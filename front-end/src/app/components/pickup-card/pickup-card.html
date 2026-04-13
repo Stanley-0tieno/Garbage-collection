@@ -6,9 +6,9 @@
       <span class="waste-emoji">{{ wasteIcon }}</span>
       <div>
         <span class="waste-name">{{ wasteLabel }}</span>
-        <span class="waste-weight" *ngIf="pickup.weightEstimate">
-          ~{{ pickup.weightEstimate === 1 ? '< 5 kg' : pickup.weightEstimate===2 ? '5–15 kg' : pickup.weightEstimate===3
-            ? '15–30 kg' : '30+ kg' }} </span>
+        <span class="waste-weight" *ngIf="pickup.weightKg">
+          {{ pickup.weightKg }} kg
+        </span>
       </div>
     </div>
     <app-status-badge [status]="pickup.status"></app-status-badge>
@@ -17,8 +17,8 @@
   <!-- Details -->
   <div class="card-body">
 
-    <!-- Date -->
-    <div class="detail-row">
+    <!-- Date — optional, collector assigns it -->
+    <div class="detail-row" *ngIf="pickup.date; else noDate">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
         <rect x="3" y="4" width="18" height="18" rx="2" />
         <line x1="3" y1="10" x2="21" y2="10" />
@@ -27,6 +27,17 @@
       </svg>
       <span>{{ pickup.date | date:'EEEE, MMM d, y' }}</span>
     </div>
+    <ng-template #noDate>
+      <div class="detail-row detail-row--muted">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+          <rect x="3" y="4" width="18" height="18" rx="2" />
+          <line x1="3" y1="10" x2="21" y2="10" />
+          <line x1="8" y1="2" x2="8" y2="6" />
+          <line x1="16" y1="2" x2="16" y2="6" />
+        </svg>
+        <span class="muted-text">Date to be assigned by collector</span>
+      </div>
+    </ng-template>
 
     <!-- Address + maps -->
     <div class="detail-row detail-row--address">
@@ -75,7 +86,8 @@
     <div class="payment-row" *ngIf="pickup.amount">
       <div class="payment-info">
         <span class="payment-label">Payment</span>
-        <span class="payment-status" [class.payment-status--paid]="pickup.paymentStatus === 'PAID'"
+        <span class="payment-status"
+          [class.payment-status--paid]="pickup.paymentStatus === 'PAID'"
           [class.payment-status--pending]="pickup.paymentStatus !== 'PAID'">
           {{ pickup.paymentStatus === 'PAID' ? '✅ Paid' : '⏳ Pending' }}
         </span>
@@ -100,8 +112,11 @@
   </div>
 
   <!-- Actions -->
-  <div class="card-actions" *ngIf="showActions && pickup.status !== 'COMPLETED' && pickup.status !== 'CANCELLED'">
-    <button class="action-btn action-btn--accept" *ngIf="pickup.status === 'PENDING'" [disabled]="loading"
+  <div class="card-actions"
+    *ngIf="showActions && pickup.status !== 'COMPLETED' && pickup.status !== 'CANCELLED'">
+    <button class="action-btn action-btn--accept"
+      *ngIf="pickup.status === 'PENDING'"
+      [disabled]="loading"
       (click)="accept.emit(pickup)">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
         <polyline points="20 6 9 17 4 12" />

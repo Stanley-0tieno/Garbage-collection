@@ -46,37 +46,66 @@
     <form [formGroup]="detailsForm" novalidate>
       <div class="form-card">
 
-        <!-- Waste type -->
+        <!-- Waste type + Predefined Prices -->
         <div class="form-section">
           <label class="form-label">Waste Type <span class="required">*</span></label>
           <p class="form-hint">Select the types of waste to be collected (can select multiple)</p>
+
+          <!-- Price info banner -->
+          <div class="price-info-banner">
+            <svg viewBox="0 0 20 20" fill="currentColor">
+              <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd"/>
+            </svg>
+            <span>System prices apply per kg. The collector will weigh your waste and calculate payment accordingly.</span>
+          </div>
+
           <div class="waste-grid">
             <button type="button" class="waste-option" *ngFor="let opt of wasteOptions"
-              [class.waste-option--active]="wasteType.value.includes(opt.value)" (click)="selectWaste(opt.value)">
+              [class.waste-option--active]="wasteType.value.includes(opt.value)"
+              (click)="selectWaste(opt.value)">
               <span class="waste-icon">{{ opt.icon }}</span>
               <span class="waste-label">{{ opt.label }}</span>
               <span class="waste-desc">{{ opt.desc }}</span>
+              <span class="waste-price">KES {{ opt.pricePerKg }}/kg</span>
             </button>
           </div>
-          <span class="field-error" *ngIf="wasteType.invalid && wasteType.touched">Please select at least one waste
-            type</span>
+          <span class="field-error" *ngIf="wasteType.invalid && wasteType.touched">
+            Please select at least one waste type
+          </span>
         </div>
 
-        <!-- Date -->
-        <div class="form-section">
-          <div class="field" [class.field--error]="date.invalid && date.touched">
-            <label class="form-label">Pickup Date <span class="required">*</span></label>
-            <p class="form-hint">Choose a date (from tomorrow onwards)</p>
-            <div class="input-wrap">
-              <svg class="input-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
-                <rect x="3" y="4" width="18" height="18" rx="2" />
-                <line x1="16" y1="2" x2="16" y2="6" />
-                <line x1="8" y1="2" x2="8" y2="6" />
-                <line x1="3" y1="10" x2="21" y2="10" />
-              </svg>
-              <input type="date" formControlName="date" [min]="minDate" />
+        <!-- Predefined price table -->
+        <div class="form-section" *ngIf="selectedWastes.length > 0">
+          <label class="form-label">Applicable Rates</label>
+          <p class="form-hint">These system-set prices will be used when the collector processes your payment</p>
+          <div class="price-table">
+            <div class="price-table__header">
+              <span>Waste Type</span>
+              <span>Rate per kg</span>
             </div>
-            <span class="field-error" *ngIf="date.invalid && date.touched">Please select a pickup date</span>
+            <div class="price-table__row" *ngFor="let w of selectedWastes">
+              <span class="price-table__type">
+                <span class="price-table__icon">{{ w.icon }}</span>
+                {{ w.label }}
+              </span>
+              <span class="price-table__amount">KES {{ w.pricePerKg }}/kg</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- NOTE: Date field removed. The collector assigns the pickup date. -->
+        <div class="form-section">
+          <div class="date-info-box">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+              <rect x="3" y="4" width="18" height="18" rx="2" />
+              <line x1="16" y1="2" x2="16" y2="6" />
+              <line x1="8" y1="2" x2="8" y2="6" />
+              <line x1="3" y1="10" x2="21" y2="10" />
+            </svg>
+            <div>
+              <span class="date-info-title">Pickup Date</span>
+              <span class="date-info-desc">A collector will review your request and assign a pickup date. You'll be notified once it's confirmed.</span>
+            </div>
           </div>
         </div>
 
@@ -99,8 +128,9 @@
               <span class="address-text">{{ address.value }}</span>
             </div>
             <div class="location-error" *ngIf="locationError()">⚠️ {{ locationError() }}</div>
-            <span class="field-error" *ngIf="address.invalid && address.touched">Please use your current location to set
-              the address</span>
+            <span class="field-error" *ngIf="address.invalid && address.touched">
+              Please use your current location to set the address
+            </span>
           </div>
         </div>
 
@@ -157,7 +187,7 @@
   <div class="step-panel" *ngIf="currentStep() === 2">
     <div class="form-card">
       <h2 class="card-title">Review Your Order</h2>
-      <p class="card-subtitle">Confirm the details before proceeding to payment</p>
+      <p class="card-subtitle">Confirm the details before submitting your request</p>
 
       <div class="review-grid">
         <div class="review-item" *ngFor="let waste of selectedWastes">
@@ -166,12 +196,13 @@
             <span class="review-label">Waste Type</span>
             <span class="review-value">{{ waste.label }}</span>
           </div>
+          <span class="review-price-badge">KES {{ waste.pricePerKg }}/kg</span>
         </div>
         <div class="review-item">
           <span class="review-icon">📅</span>
           <div class="review-info">
             <span class="review-label">Pickup Date</span>
-            <span class="review-value">{{ detailsForm.get('date')?.value | date:'EEEE, MMMM d, y' }}</span>
+            <span class="review-value review-value--muted">To be assigned by collector</span>
           </div>
         </div>
         <div class="review-item">
@@ -198,7 +229,10 @@
       </div>
 
       <div class="amount-box">
-        <p class="amount-note">ℹ️ Note: The collector will offer a price when accepting the job.</p>
+        <p class="amount-note">
+          💰 Payment is calculated by the collector after weighing your waste,
+          using the system rates shown above (KES per kg).
+        </p>
       </div>
 
       <div class="form-actions">
@@ -218,7 +252,9 @@
     <div class="form-card confirm-card">
       <div class="confirm-icon">🚀</div>
       <h2 class="card-title">Ready to Book?</h2>
-      <p class="card-subtitle">Your pickup request will be created. A collector will find your request and contact you.
+      <p class="card-subtitle">
+        Your pickup request will be submitted. A collector will review it, assign a date, and contact you.
+        Payment is processed after the waste is weighed at the predefined system rates.
       </p>
 
       <div class="form-actions form-actions--centered">

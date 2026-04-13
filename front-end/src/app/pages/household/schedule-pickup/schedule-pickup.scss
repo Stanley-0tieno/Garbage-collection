@@ -1,3 +1,5 @@
+// ── (All existing styles preserved, new additions below) ──
+
 .schedule-page {
   max-width: 700px;
   margin: 0 auto;
@@ -79,7 +81,6 @@
   transition: background .3s, color .3s;
   border: 3px solid #fff;
   box-shadow: 0 0 0 2px #e5e7eb;
-
   svg { width: 14px; height: 14px; }
 }
 
@@ -159,6 +160,96 @@
 .required  { color: #ef4444; margin-left: 2px; }
 .optional  { color: #9ca3af; font-weight: 400; font-size: .8rem; }
 
+// ── Price info banner ──────────────────────────────────────
+.price-info-banner {
+  display: flex;
+  align-items: flex-start;
+  gap: .6rem;
+  background: #eff6ff;
+  border: 1px solid #bfdbfe;
+  border-radius: 10px;
+  padding: .75rem 1rem;
+  margin-bottom: 1rem;
+  font-size: .825rem;
+  color: #1d4ed8;
+  line-height: 1.5;
+  svg { width: 16px; height: 16px; flex-shrink: 0; margin-top: 1px; color: #3b82f6; }
+}
+
+// ── Price table ────────────────────────────────────────────
+.price-table {
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+.price-table__header {
+  display: flex;
+  justify-content: space-between;
+  background: #f9fafb;
+  padding: .6rem 1rem;
+  font-size: .75rem;
+  font-weight: 700;
+  color: #6b7280;
+  text-transform: uppercase;
+  letter-spacing: .05em;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.price-table__row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: .7rem 1rem;
+  border-bottom: 1px solid #f9fafb;
+  font-size: .875rem;
+  &:last-child { border-bottom: none; }
+  &:hover { background: #fafafa; }
+}
+
+.price-table__type {
+  display: flex;
+  align-items: center;
+  gap: .5rem;
+  color: #111827;
+  font-weight: 500;
+}
+
+.price-table__icon { font-size: 1rem; }
+
+.price-table__amount {
+  font-weight: 700;
+  color: #16a34a;
+  font-size: .875rem;
+}
+
+// ── Date info box ──────────────────────────────────────────
+.date-info-box {
+  display: flex;
+  align-items: flex-start;
+  gap: .85rem;
+  background: #f9fafb;
+  border: 1.5px dashed #d1d5db;
+  border-radius: 12px;
+  padding: 1rem 1.25rem;
+  svg { width: 22px; height: 22px; color: #9ca3af; flex-shrink: 0; margin-top: 1px; }
+}
+
+.date-info-title {
+  display: block;
+  font-size: .875rem;
+  font-weight: 700;
+  color: #374151;
+  margin-bottom: .25rem;
+}
+
+.date-info-desc {
+  display: block;
+  font-size: .8rem;
+  color: #6b7280;
+  line-height: 1.5;
+}
+
 // ── Waste grid ─────────────────────────────────────────────
 .waste-grid {
   display: grid;
@@ -187,51 +278,6 @@
 .waste-label { font-size: .8rem; font-weight: 700; color: #111827; }
 .waste-desc  { font-size: .68rem; color: #9ca3af; line-height: 1.3; }
 .waste-price { font-size: .7rem; font-weight: 700; color: #16a34a; margin-top: .15rem; }
-
-// ── Weight grid ────────────────────────────────────────────
-.weight-grid {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: .65rem;
-  margin-bottom: .85rem;
-
-  @media (max-width: 480px) { grid-template-columns: repeat(2, 1fr); }
-}
-
-.weight-option {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: .2rem;
-  padding: .75rem .5rem;
-  border: 2px solid #e5e7eb;
-  border-radius: 12px;
-  background: #fafafa;
-  cursor: pointer;
-  transition: all .2s;
-  text-align: center;
-
-  &:hover { border-color: #86efac; background: #f0fdf4; }
-  &--active { border-color: #16a34a; background: #f0fdf4; box-shadow: 0 0 0 3px rgba(22,163,74,.12); }
-}
-
-.weight-label { font-size: .85rem; font-weight: 700; color: #111827; }
-.weight-desc  { font-size: .72rem; color: #9ca3af; }
-
-// ── Fee estimate ───────────────────────────────────────────
-.fee-estimate {
-  display: inline-flex;
-  align-items: center;
-  gap: .5rem;
-  padding: .5rem 1rem;
-  background: #f0fdf4;
-  border: 1px solid #bbf7d0;
-  border-radius: 10px;
-  margin-top: .5rem;
-}
-
-.fee-label { font-size: .825rem; color: #6b7280; font-weight: 500; }
-.fee-value { font-size: 1rem; font-weight: 800; color: #16a34a; }
 
 // ── Field inputs ───────────────────────────────────────────
 .field { display: flex; flex-direction: column; gap: .4rem; }
@@ -305,18 +351,16 @@ textarea {
 }
 
 .locating-text { display: flex; align-items: center; gap: .5rem; }
-
-.address-divider {
-  display: flex;
-  align-items: center;
-  gap: .75rem;
-  margin-bottom: .75rem;
-  color: #9ca3af;
-  font-size: .78rem;
-  &::before, &::after { content: ''; flex: 1; height: 1px; background: #e5e7eb; }
-}
-
 .location-error { font-size: .78rem; color: #d97706; margin-top: .4rem; }
+
+.address-preview {
+  background: #f9fafb;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  padding: .6rem .85rem;
+  margin-top: .25rem;
+}
+.address-text { font-size: .82rem; color: #374151; }
 
 // ── Image upload ───────────────────────────────────────────
 .image-upload {
@@ -456,10 +500,24 @@ textarea {
   display: flex;
   flex-direction: column;
   gap: .2rem;
+  flex: 1;
 }
 
 .review-label { font-size: .75rem; color: #9ca3af; font-weight: 600; text-transform: uppercase; letter-spacing: .04em; }
 .review-value { font-size: .9rem; color: #111827; font-weight: 500; line-height: 1.4; }
+.review-value--muted { color: #9ca3af; font-style: italic; font-weight: 400; }
+
+.review-price-badge {
+  flex-shrink: 0;
+  background: #f0fdf4;
+  border: 1px solid #bbf7d0;
+  color: #16a34a;
+  font-size: .75rem;
+  font-weight: 700;
+  padding: .2rem .6rem;
+  border-radius: 99px;
+  align-self: center;
+}
 
 .review-img {
   width: 80px;
@@ -471,163 +529,18 @@ textarea {
 
 // ── Amount box ─────────────────────────────────────────────
 .amount-box {
-  background: #f9fafb;
-  border: 1px solid #f3f4f6;
+  background: #fffbeb;
+  border: 1px solid #fde68a;
   border-radius: 14px;
   padding: 1rem 1.25rem;
   margin-bottom: 1.5rem;
 }
 
-.amount-row {
-  display: flex;
-  justify-content: space-between;
-  font-size: .9rem;
-  color: #6b7280;
-  padding: .35rem 0;
-  &--total { border-top: 1px solid #e5e7eb; margin-top: .35rem; padding-top: .6rem; }
-}
-
-.amount-total { font-size: 1.1rem; font-weight: 800; color: #16a34a; }
-.amount-note  { font-size: .78rem; color: #9ca3af; margin-top: .5rem; text-align: center; }
+.amount-note { font-size: .82rem; color: #92400e; text-align: center; line-height: 1.5; }
 
 // ── Confirm step ───────────────────────────────────────────
 .confirm-card { text-align: center; }
-
 .confirm-icon { font-size: 3rem; margin-bottom: 1rem; }
-
-.confirm-summary {
-  background: #f9fafb;
-  border: 1px solid #f3f4f6;
-  border-radius: 14px;
-  padding: 1rem 1.25rem;
-  margin-bottom: 1.75rem;
-}
-
-.confirm-row {
-  display: flex;
-  justify-content: space-between;
-  font-size: .9rem;
-  color: #374151;
-  padding: .35rem 0;
-  font-weight: 500;
-}
-
-.confirm-amount { font-weight: 800; color: #16a34a; }
-
-// ── Payment step ───────────────────────────────────────────
-.payment-card { text-align: center; }
-
-.mpesa-header { margin-bottom: 1.5rem; }
-
-.mpesa-logo {
-  display: inline-block;
-  background: #00a651;
-  color: #fff;
-  font-size: .9rem;
-  font-weight: 900;
-  letter-spacing: .05em;
-  padding: .35rem .9rem;
-  border-radius: 8px;
-  margin-bottom: 1rem;
-}
-
-.mpesa-info {
-  display: flex;
-  align-items: flex-start;
-  gap: .75rem;
-  background: #eff6ff;
-  border: 1px solid #bfdbfe;
-  border-radius: 12px;
-  padding: .85rem 1rem;
-  text-align: left;
-  margin: 1rem 0 1.5rem;
-  font-size: .85rem;
-  color: #1d4ed8;
-  line-height: 1.5;
-  p { margin: 0; }
-}
-
-.btn-mpesa {
-  width: 100%;
-  padding: .85rem;
-  background: #00a651;
-  color: #fff;
-  font-size: .95rem;
-  font-weight: 700;
-  border-radius: 12px;
-  border: none;
-  cursor: pointer;
-  box-shadow: 0 4px 16px rgba(0,166,81,.3);
-  transition: opacity .2s, transform .15s;
-  letter-spacing: .01em;
-  &:hover { opacity: .92; transform: translateY(-1px); }
-}
-
-// ── Payment states ─────────────────────────────────────────
-.payment-state {
-  padding: 2rem 1rem;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: .75rem;
-
-  h3 { font-size: 1.1rem; font-weight: 700; color: #111827; margin: 0; }
-  p  { font-size: .9rem; color: #6b7280; margin: 0; }
-
-  &--success h3 { color: #15803d; }
-  &--failed  h3 { color: #dc2626; }
-}
-
-.waiting-sub { font-size: .85rem; color: #9ca3af; }
-
-.success-ring { font-size: 3.5rem; animation: pop .4s ease; }
-.failed-icon  { font-size: 3rem; }
-
-@keyframes pop {
-  0%   { transform: scale(.5); opacity: 0; }
-  70%  { transform: scale(1.1); }
-  100% { transform: scale(1); opacity: 1; }
-}
-
-// ── Pulse animation (waiting) ──────────────────────────────
-.pulse-ring {
-  width: 72px; height: 72px;
-  border-radius: 50%;
-  background: #f0fdf4;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  animation: pulse 1.5s infinite;
-}
-
-.pulse-icon { font-size: 2rem; }
-
-@keyframes pulse {
-  0%, 100% { box-shadow: 0 0 0 0 rgba(22,163,74,.4); }
-  50%       { box-shadow: 0 0 0 16px rgba(22,163,74,0); }
-}
-
-// ── Waiting dots ───────────────────────────────────────────
-.waiting-dots {
-  display: flex;
-  gap: .4rem;
-  margin-top: .5rem;
-
-  span {
-    width: 8px; height: 8px;
-    border-radius: 50%;
-    background: #16a34a;
-    animation: bounce 1.2s infinite;
-
-    &:nth-child(2) { animation-delay: .2s; }
-    &:nth-child(3) { animation-delay: .4s; }
-  }
-}
-
-@keyframes bounce {
-  0%, 80%, 100% { transform: scale(.8); opacity: .5; }
-  40%            { transform: scale(1.2); opacity: 1; }
-}
 
 // ── Spinners ───────────────────────────────────────────────
 .spinner {
@@ -638,7 +551,6 @@ textarea {
   animation: spin .7s linear infinite;
 
   &--sm { width: 14px; height: 14px; border-width: 2px; }
-  &--lg { width: 44px; height: 44px; border-width: 3px; }
   &--green { border-color: rgba(22,163,74,.25); border-top-color: #16a34a; }
 }
 

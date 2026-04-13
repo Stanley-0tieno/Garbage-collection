@@ -34,7 +34,7 @@ export class Dashboard implements OnInit {
   readonly assignedPickups = computed(() =>
     this.allPickups()
       .filter(p => p.status === 'ASSIGNED')
-      .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime())
+      // .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime())
   );
 
   readonly recentPending = computed(() =>

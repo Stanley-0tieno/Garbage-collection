@@ -51,7 +51,7 @@
             (click)="selectRole('collector')">
             <span class="role-icon">🚛</span>
             <span class="role-label">Collector</span>
-            <span class="role-desc">I collect & recycle waste</span>
+            <span class="role-desc">I collect &amp; recycle waste</span>
           </button>
         </div>
 
@@ -96,18 +96,51 @@
           <span class="field-error" *ngIf="phone.invalid && phone.touched">Enter a valid phone number</span>
         </div>
 
-        <!-- Collector Specific Fields -->
-        <ng-container *ngIf="role.value === 'collector'">
+        <!-- ── HOUSEHOLD SPECIFIC FIELDS ─────────────────── -->
+        <ng-container *ngIf="role.value === 'household'">
           <div class="field" [class.field--error]="nationalId.invalid && nationalId.touched">
             <label>National ID Number</label>
-            <input type="text" formControlName="nationalId" placeholder="12345678" />
-            <span class="field-error" *ngIf="nationalId.invalid && nationalId.touched">Required for collectors</span>
+            <div class="input-wrap">
+              <svg class="input-icon" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5">
+                <rect x="2" y="5" width="16" height="12" rx="2"/>
+                <path d="M6 9h8M6 12h5"/>
+              </svg>
+              <input type="text" formControlName="nationalId" placeholder="e.g. 12345678" />
+            </div>
+            <span class="field-error" *ngIf="nationalId.invalid && nationalId.touched">
+              National ID is required
+            </span>
           </div>
+        </ng-container>
+
+        <!-- ── COLLECTOR SPECIFIC FIELDS ─────────────────── -->
+        <ng-container *ngIf="role.value === 'collector'">
+          <div class="field" [class.field--error]="businessRegNumber.invalid && businessRegNumber.touched">
+            <label>Business Registration Number</label>
+            <div class="input-wrap">
+              <svg class="input-icon" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5">
+                <path d="M4 4h12v2H4zM3 7h14v10H3z"/>
+                <path d="M8 11h4M8 14h2"/>
+              </svg>
+              <input type="text" formControlName="businessRegNumber" placeholder="e.g. BN/2024/001234" />
+            </div>
+            <span class="field-error" *ngIf="businessRegNumber.invalid && businessRegNumber.touched">
+              Business registration number is required for collectors
+            </span>
+          </div>
+
           <div class="field" [class.field--error]="vehicleNumberPlate.invalid && vehicleNumberPlate.touched">
             <label>Vehicle Number Plate</label>
-            <input type="text" formControlName="vehicleNumberPlate" placeholder="KAA 123A" />
-            <span class="field-error" *ngIf="vehicleNumberPlate.invalid && vehicleNumberPlate.touched">Required for
-              collectors</span>
+            <div class="input-wrap">
+              <svg class="input-icon" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5">
+                <rect x="2" y="6" width="16" height="9" rx="2"/>
+                <path d="M5 10h10"/>
+              </svg>
+              <input type="text" formControlName="vehicleNumberPlate" placeholder="e.g. KAA 123A" />
+            </div>
+            <span class="field-error" *ngIf="vehicleNumberPlate.invalid && vehicleNumberPlate.touched">
+              Vehicle number plate is required for collectors
+            </span>
           </div>
         </ng-container>
 
