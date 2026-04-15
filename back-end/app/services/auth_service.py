@@ -1,34 +1,43 @@
 import secrets
-import logging
-
 from fastapi import HTTPException, status
-from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy import select
 
-from app.core.config import settings
-from app.core.security import create_access_token, hash_password, verify_password
-from app.core.email import build_confirmation_email, enqueue_email
 from app.models.user import User
-from app.schemas.auth import AuthResponse, LoginRequest, SignupRequest, UserOut
+from app.schemas.auth import SignupRequest, LoginRequest, AuthResponse, UserOut, MessageResponse
+from app.core.security import hash_password, verify_password, create_access_token
+from app.core.email import send_verification_email
 
-logger = logging.getLogger(__name__)
 
-
-async def register_user(payload: SignupRequest, db: AsyncSession) -> dict:
-    """
-    Create a new user, queue a confirmation email, return a simple message.
-    Does NOT return a token — user must verify email first.
-    """
-    # 1. Check duplicate email
-    existing = await db.scalar(select(User).where(User.email == payload.email))
-    if existing:
+async def register_user(payload: SignupRequest, db: AsyncSession) -> MessageResponse:
+    # Check email uniqueness
+    existing = await db.execute(select(User).where(User.email == payload.email))
+    if existing.scalar_one_or_none():
         raise HTTPException(
             status_code=status.HTTP_409_CONFLICT,
             detail="An account with this email already exists.",
         )
 
-    # 2. Create user
+    # Role-specific field validation
+    if payload.role == "household" and not payload.nationalId:
+        raise HTTPException(
+            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+            detail="National ID is required for household accounts.",
+        )
+    if payload.role == "collector":
+        if not payload.businessRegNumber:
+            raise HTTPException(
+                status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+                detail="Business registration number is required for collector accounts.",
+            )
+        if not payload.vehicleNumberPlate:
+            raise HTTPException(
+                status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+                detail="Vehicle number plate is required for collector accounts.",
+            )
+
     verification_token = secrets.token_urlsafe(32)
+
     user = User(
         first_name=payload.firstName,
         last_name=payload.lastName,
@@ -36,70 +45,73 @@ async def register_user(payload: SignupRequest, db: AsyncSession) -> dict:
         phone=payload.phone,
         password_hash=hash_password(payload.password),
         role=payload.role,
-        national_id=payload.nationalId,
-        vehicle_number_plate=payload.vehicleNumberPlate,
-        verification_token=verification_token,
+        # Household field
+        national_id=payload.nationalId if payload.role == "household" else None,
+        # Collector fields
+        business_reg_number=(
+            payload.businessRegNumber if payload.role == "collector" else None
+        ),
+        vehicle_number_plate=(
+            payload.vehicleNumberPlate if payload.role == "collector" else None
+        ),
         is_verified=False,
-        is_active=True,
+        verification_token=verification_token,
     )
+
     db.add(user)
     await db.commit()
     await db.refresh(user)
 
-    # 3. Queue confirmation email (non-blocking)
-    confirm_url = f"http://localhost:8000/api/auth/verify?token={verification_token}"
-    await enqueue_email(
-        to=user.email,
-        subject="Confirm your Waste2Worth account",
-        html_body=build_confirmation_email(user.first_name, confirm_url),
-    )
+    # Send verification email (non-blocking)
+    try:
+        await send_verification_email(user.email, user.first_name, verification_token)
+    except Exception:
+        pass  # Don't fail registration if email fails
 
-    logger.info("New user registered: %s (%s)", user.email, user.role)
-    return {"message": "Account created! Please check your email to confirm your address."}
+    return MessageResponse(
+        message="Account created! Please check your email to verify your account."
+    )
 
 
 async def login_user(payload: LoginRequest, db: AsyncSession) -> AuthResponse:
-    """
-    Validate credentials, return JWT + user object.
-    Blocks unverified accounts.
-    """
-    user = await db.scalar(select(User).where(User.email == payload.email))
-
-    # Use a single generic error to avoid email enumeration attacks
-    invalid = HTTPException(
-        status_code=status.HTTP_401_UNAUTHORIZED,
-        detail="Invalid email or password.",
-    )
+    result = await db.execute(select(User).where(User.email == payload.email))
+    user = result.scalar_one_or_none()
 
     if not user or not verify_password(payload.password, user.password_hash):
-        raise invalid
-
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Invalid email or password.",
+        )
+    if not user.is_active:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Your account has been deactivated.",
+        )
     if not user.is_verified:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
-            detail="Please confirm your email address before logging in.",
+            detail="Please verify your email before logging in.",
         )
 
-    token = create_access_token(subject=user.id)
+    # ✅ FIX: pass user.id directly, not {"sub": user.id}
+    token = create_access_token(user.id)
     return AuthResponse(user=UserOut.model_validate(user), token=token)
 
 
-async def verify_email(token: str, db: AsyncSession) -> dict:
-    """
-    Accept the token from the confirmation link and activate the account.
-    """
-    user = await db.scalar(
+async def verify_email(token: str, db: AsyncSession) -> MessageResponse:
+    result = await db.execute(
         select(User).where(User.verification_token == token)
     )
+    user = result.scalar_one_or_none()
+
     if not user:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Invalid or expired confirmation link.",
+            detail="Invalid or expired verification token.",
         )
 
     user.is_verified = True
     user.verification_token = None
     await db.commit()
 
-    logger.info("Email verified for user: %s", user.email)
-    return {"message": "Email confirmed! You can now log in."}
+    return MessageResponse(message="Email verified successfully! You can now log in.")

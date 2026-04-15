@@ -18,78 +18,71 @@ type Filter = 'ALL' | PickupStatus;
 })
 export class PickupRequests implements OnInit {
   private pickupService = inject(PickupService);
-  private toast         = inject(ToastService);
-  private route         = inject(ActivatedRoute);
+  private toast = inject(ToastService);
+  private route = inject(ActivatedRoute);
 
-  loading      = signal(true);
-  pickupList   = signal<PickupRequest[]>([]);
+  loading = signal(true);
+  pickupList = signal<PickupRequest[]>([]);
   activeFilter = signal<Filter>('ALL');
-  updatingId   = signal<string | null>(null);
+  updatingId = signal<string | null>(null);
 
-  // ── Accept / quote dialog ──────────────────────────────
-  confirmingId   = signal<string | null>(null);
-  acceptAmount   = signal<number | null>(null);
+  // ── Accept confirm dialog ──────────────────────────────
+  // Now just holds the pickup being confirmed — no amount needed at accept time
+  confirmingPickup = signal<PickupRequest | null>(null);
 
   // ── Payment / weigh dialog ─────────────────────────────
-  payingPickup   = signal<PickupRequest | null>(null);
-  weightInput    = signal<number | null>(null);   // kg entered by collector
-  calculatedAmt  = signal<number | null>(null);   // auto-calculated from weight × price
+  payingPickup = signal<PickupRequest | null>(null);
+  weightInput = signal<number | null>(null);
+  calculatedAmt = signal<number | null>(null);
 
   // ── Area / route filter ────────────────────────────────
-  areaSearch     = signal('');
-  selectedArea   = signal('');
+  areaSearch = signal('');
+  selectedArea = signal('');
 
-  /** Extract unique areas from all pickups (from address — first comma segment) */
   readonly availableAreas = computed(() => {
     const areas = new Set<string>();
     this.pickupList().forEach(p => {
-      if (p.area) {
-        areas.add(p.area);
-      } else if (p.address) {
-        // Fall back: extract first part of address as area
-        const part = p.address.split(',')[0].trim();
-        if (part) areas.add(part);
-      }
+      const area = (p as any).area ?? p.address?.split(',')[0].trim() ?? '';
+      if (area) areas.add(area);
     });
     return Array.from(areas).sort();
   });
 
   readonly filteredAreas = computed(() => {
     const q = this.areaSearch().toLowerCase();
-    return q ? this.availableAreas().filter(a => a.toLowerCase().includes(q)) : this.availableAreas();
+    return q
+      ? this.availableAreas().filter(a => a.toLowerCase().includes(q))
+      : this.availableAreas();
   });
 
   readonly filters: { value: Filter; label: string; count: () => number }[] = [
-    { value: 'ALL',       label: 'All',       count: () => this.pickupList().length },
-    { value: 'PENDING',   label: 'Pending',   count: () => this.pickupList().filter(p => p.status === 'PENDING').length },
-    { value: 'ASSIGNED',  label: 'My Jobs',   count: () => this.pickupList().filter(p => p.status === 'ASSIGNED').length },
+    { value: 'ALL', label: 'All', count: () => this.pickupList().length },
+    { value: 'PENDING', label: 'Pending', count: () => this.pickupList().filter(p => p.status === 'PENDING').length },
+    { value: 'ASSIGNED', label: 'My Jobs', count: () => this.pickupList().filter(p => p.status === 'ASSIGNED').length },
     { value: 'COMPLETED', label: 'Completed', count: () => this.pickupList().filter(p => p.status === 'COMPLETED').length },
   ];
 
   readonly filtered = computed(() => {
-    const f    = this.activeFilter();
+    const f = this.activeFilter();
     const area = this.selectedArea();
-    let list   = [...this.pickupList()]
+    let list = [...this.pickupList()]
       .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
 
-    if (f !== 'ALL') {
-      list = list.filter(p => p.status === f);
-    }
+    if (f !== 'ALL') list = list.filter(p => p.status === f);
 
     if (area) {
       list = list.filter(p => {
-        const pickupArea = p.area ?? p.address?.split(',')[0].trim() ?? '';
+        const pickupArea = (p as any).area ?? p.address?.split(',')[0].trim() ?? '';
         return pickupArea.toLowerCase().includes(area.toLowerCase());
       });
     }
-
     return list;
   });
 
   ngOnInit(): void {
     this.pickupService.getAllPickups().subscribe({
       next: data => { this.pickupList.set(data); this.loading.set(false); this.checkHighlight(); },
-      error: ()  => this.loading.set(false)
+      error: () => this.loading.set(false)
     });
   }
 
@@ -97,8 +90,7 @@ export class PickupRequests implements OnInit {
     const id = this.route.snapshot.queryParamMap.get('highlight');
     if (id) {
       setTimeout(() => {
-        const el = document.getElementById('pickup-' + id);
-        el?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        document.getElementById('pickup-' + id)?.scrollIntoView({ behavior: 'smooth', block: 'center' });
       }, 200);
     }
   }
@@ -115,36 +107,35 @@ export class PickupRequests implements OnInit {
     this.areaSearch.set('');
   }
 
-  // ── Accept / quote job ─────────────────────────────────
+  // ── Accept job — no amount at this stage ───────────────
   accept(pickup: PickupRequest): void {
-    this.confirmingId.set(pickup.id);
-    this.acceptAmount.set(null);
-  }
-
-  updateAmount(event: Event): void {
-    const el = event.target as HTMLInputElement;
-    this.acceptAmount.set(Number(el.value));
+    this.confirmingPickup.set(pickup);
   }
 
   confirmAccept(): void {
-    const id = this.confirmingId();
-    if (!id || !this.acceptAmount()) return;
-    this.updatingId.set(id);
-    this.confirmingId.set(null);
+    const pickup = this.confirmingPickup();
+    if (!pickup) return;
 
-    this.pickupService.updateStatus(id, 'ASSIGNED', this.acceptAmount()!).subscribe({
+    this.updatingId.set(pickup.id);
+    this.confirmingPickup.set(null);
+
+    // Status ASSIGNED — no amount yet; amount is derived from weight at completion
+    this.pickupService.updateStatus(pickup.id, 'ASSIGNED').subscribe({
       next: updated => {
         this.pickupList.update(list => list.map(p => p.id === updated.id ? updated : p));
         this.updatingId.set(null);
-        this.toast.success('Job accepted! You have been assigned to this pickup.');
+        this.toast.success('Job accepted! You are now assigned to this pickup.');
       },
-      error: () => { this.updatingId.set(null); this.toast.error('Failed to accept job.'); }
+      error: () => {
+        this.updatingId.set(null);
+        this.toast.error('Failed to accept job. Please try again.');
+      }
     });
   }
 
-  cancelConfirm(): void { this.confirmingId.set(null); }
+  cancelConfirm(): void { this.confirmingPickup.set(null); }
 
-  // ── Payment / weigh dialog ─────────────────────────────
+  // ── Weigh & payment dialog ─────────────────────────────
   openPaymentDialog(pickup: PickupRequest): void {
     this.payingPickup.set(pickup);
     this.weightInput.set(null);
@@ -163,11 +154,9 @@ export class PickupRequests implements OnInit {
       this.weightInput.set(val);
       const pickup = this.payingPickup();
       if (pickup) {
-        // Use first waste type if multiple — in a real app you'd handle multi-type
-        const wasteType = Array.isArray(pickup.wasteType)
-          ? (pickup.wasteType as WasteType[])[0]
-          : pickup.wasteType as WasteType;
-        const rate = WASTE_PRICES_PER_KG[wasteType] ?? 5;
+        // Handle comma-joined waste types — price from first type
+        const primaryType = (pickup.wasteType as string).split(',')[0].trim() as WasteType;
+        const rate = WASTE_PRICES_PER_KG[primaryType] ?? 5;
         this.calculatedAmt.set(Math.round(val * rate));
       }
     } else {
@@ -177,32 +166,35 @@ export class PickupRequests implements OnInit {
   }
 
   pricePerKgForPickup(pickup: PickupRequest): number {
-    const wasteType = Array.isArray(pickup.wasteType)
-      ? (pickup.wasteType as WasteType[])[0]
-      : pickup.wasteType as WasteType;
-    return WASTE_PRICES_PER_KG[wasteType] ?? 5;
+    const primaryType = (pickup.wasteType as string).split(',')[0].trim() as WasteType;
+    return WASTE_PRICES_PER_KG[primaryType] ?? 5;
   }
 
   confirmPayment(): void {
     const pickup = this.payingPickup();
-    const amt    = this.calculatedAmt();
+    const amt = this.calculatedAmt();
     const weight = this.weightInput();
     if (!pickup || !amt || !weight) return;
 
     this.updatingId.set(pickup.id);
     this.closePaymentDialog();
 
-    this.pickupService.updateStatus(pickup.id, 'COMPLETED', amt).subscribe({
+    // Pass both amount and weightKg — backend recalculates from weight using system prices
+    this.pickupService.updateStatus(pickup.id, 'COMPLETED', amt, weight).subscribe({
       next: updated => {
         this.pickupList.update(list => list.map(p => p.id === updated.id ? updated : p));
         this.updatingId.set(null);
-        this.toast.success(`Payment of KES ${amt} recorded for ${weight}kg. Job completed!`);
+        this.toast.success(`Weight recorded (${weight} kg). Awaiting payment.`);
       },
-      error: () => { this.updatingId.set(null); this.toast.error('Failed to complete job.'); }
+      error: () => {
+        this.updatingId.set(null);
+        this.toast.error('Failed to complete job. Please try again.');
+      }
     });
   }
 
-  wasteIcon(t: string) {
-    return ({ general:'🗑️', recyclable:'♻️', organic:'🌿', electronic:'💻', hazardous:'⚠️' } as any)[t] ?? '📦';
+  wasteIcon(t: string): string {
+    const primary = (t ?? '').split(',')[0].trim();
+    return ({ general: '🗑️', recyclable: '♻️', organic: '🌿', electronic: '💻', hazardous: '⚠️' } as any)[primary] ?? '📦';
   }
 }

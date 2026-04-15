@@ -1,26 +1,27 @@
-import { Injectable } from '@angular/core';
+import { Injectable, inject } from '@angular/core';
+import { HttpClient } from '@angular/common/http';
 import { Observable, of, throwError, timer } from 'rxjs';
 import { delay, switchMap } from 'rxjs/operators';
 import { PaymentRequest, PaymentResponse } from '../../models/pickup.model';
 
-const USE_MOCK = true;
+const API_URL = 'http://localhost:8000/api';
+const USE_MOCK = false;
 
 @Injectable({ providedIn: 'root' })
 export class PaymentService {
+  private http = inject(HttpClient);
 
   // ── Initiate STK push ──────────────────────────────────
   initiatePayment(req: PaymentRequest): Observable<PaymentResponse> {
     if (USE_MOCK) return this.mockInitiate(req);
-    // Real: return this.http.post<PaymentResponse>(`${API_URL}/payments/mpesa/stk`, req);
-    return throwError(() => new Error('Not implemented'));
+    return this.http.post<PaymentResponse>(`${API_URL}/payments/mpesa/stk`, req);
   }
 
   // ── Poll payment status ────────────────────────────────
   // Returns 'PAID' | 'PENDING' | 'FAILED'
   checkStatus(checkoutRequestId: string): Observable<{ status: string }> {
     if (USE_MOCK) return this.mockCheckStatus(checkoutRequestId);
-    // Real: return this.http.get<{status:string}>(`${API_URL}/payments/status/${checkoutRequestId}`);
-    return throwError(() => new Error('Not implemented'));
+    return this.http.get<{ status: string }>(`${API_URL}/payments/status/${checkoutRequestId}`);
   }
 
   // ── Mock: simulates STK push sent ─────────────────────

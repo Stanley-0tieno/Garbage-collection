@@ -21,6 +21,7 @@ def create_access_token(subject: str | Any, expires_delta: timedelta | None = No
     expire = datetime.now(timezone.utc) + (
         expires_delta or timedelta(minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES)
     )
+    # Always store subject as a plain string under "sub"
     payload = {"sub": str(subject), "exp": expire}
     return jwt.encode(payload, settings.SECRET_KEY, algorithm=settings.ALGORITHM)
 
@@ -29,6 +30,12 @@ def decode_access_token(token: str) -> str | None:
     """Returns the subject (user id) or None if invalid/expired."""
     try:
         payload = jwt.decode(token, settings.SECRET_KEY, algorithms=[settings.ALGORITHM])
-        return payload.get("sub")
+        sub = payload.get("sub")
+        if not sub:
+            return None
+        # Guard: if sub is somehow a dict (from old bad tokens), extract the id
+        if isinstance(sub, dict):
+            return sub.get("sub")
+        return str(sub)
     except JWTError:
         return None

@@ -37,7 +37,6 @@ async def enqueue_email(to: str, subject: str, html_body: str) -> None:
     logger.info("Email queued → %s | %s", to, subject)
 
 
-
 async def email_worker() -> None:
     """Consume EmailJob items and send via SMTP."""
     logger.info("Email worker started.")
@@ -62,13 +61,17 @@ def _send_smtp(job: EmailJob) -> None:
         )
         return
 
-    logger.info("DEBUG SMTP_USER=%r SMTP_PASSWORD=%r LEN=%d", 
-        settings.SMTP_USER, settings.SMTP_PASSWORD, len(settings.SMTP_PASSWORD))
+    logger.info(
+        "DEBUG SMTP_USER=%r SMTP_PASSWORD=%r LEN=%d",
+        settings.SMTP_USER,
+        settings.SMTP_PASSWORD,
+        len(settings.SMTP_PASSWORD),
+    )
 
     msg = MIMEMultipart("alternative")
     msg["Subject"] = job.subject
-    msg["From"]    = f"{settings.EMAIL_FROM_NAME} <{settings.EMAIL_FROM}>"
-    msg["To"]      = job.to
+    msg["From"] = f"{settings.EMAIL_FROM_NAME} <{settings.EMAIL_FROM}>"
+    msg["To"] = job.to
     msg.attach(MIMEText(job.html_body, "html"))
 
     with smtplib.SMTP(settings.SMTP_HOST, settings.SMTP_PORT) as server:
@@ -96,3 +99,14 @@ def build_confirmation_email(first_name: str, confirm_url: str) -> str:
       </p>
     </body></html>
     """
+
+
+# ── Must be defined AFTER build_confirmation_email ────────────────────────
+async def send_verification_email(email: str, first_name: str, token: str) -> None:
+    confirm_url = f"{settings.FRONTEND_URL}/auth/verify?token={token}"
+    html = build_confirmation_email(first_name, confirm_url)
+    await enqueue_email(
+        to=email,
+        subject="Verify your Waste2Wealth account",
+        html_body=html,
+    )

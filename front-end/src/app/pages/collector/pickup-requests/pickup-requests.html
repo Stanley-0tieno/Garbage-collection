@@ -18,7 +18,7 @@
     <div class="route-filter-header">
       <div class="route-filter-title">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <path d="M3 12h18M3 6h18M3 18h18"/>
+          <path d="M3 12h18M3 6h18M3 18h18" />
         </svg>
         Filter by Area / Route
       </div>
@@ -29,27 +29,21 @@
 
     <div class="area-search-wrap">
       <svg class="area-search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-        <circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/>
+        <circle cx="11" cy="11" r="8" />
+        <path d="M21 21l-4.35-4.35" />
       </svg>
-      <input
-        type="text"
-        class="area-search-input"
-        placeholder="Search areas..."
-        [value]="areaSearch()"
+      <input type="text" class="area-search-input" placeholder="Search areas..." [value]="areaSearch()"
         (input)="areaSearch.set($any($event.target).value)" />
     </div>
 
     <div class="area-chips" *ngIf="filteredAreas().length > 0">
-      <button
-        *ngFor="let area of filteredAreas()"
-        class="area-chip"
-        [class.area-chip--active]="selectedArea() === area"
+      <button *ngFor="let area of filteredAreas()" class="area-chip" [class.area-chip--active]="selectedArea() === area"
         (click)="selectArea(area)">
         📍 {{ area }}
       </button>
     </div>
 
-    <p class="no-areas-hint" *ngIf="filteredAreas().length === 0">
+    <p class="no-areas-hint" *ngIf="filteredAreas().length === 0 && areaSearch()">
       No areas found matching "{{ areaSearch() }}"
     </p>
 
@@ -61,8 +55,7 @@
 
   <!-- Filter tabs -->
   <div class="filter-bar">
-    <button class="filter-tab" *ngFor="let f of filters"
-      [class.filter-tab--active]="activeFilter() === f.value"
+    <button class="filter-tab" *ngFor="let f of filters" [class.filter-tab--active]="activeFilter() === f.value"
       (click)="setFilter(f.value)">
       {{ f.label }}
       <span class="tab-count">{{ f.count() }}</span>
@@ -75,45 +68,43 @@
     <p class="empty-title">Nothing here</p>
     <p class="empty-desc">
       {{ selectedArea() ? 'No pickups found in area: ' + selectedArea() :
-         activeFilter() === 'PENDING' ? 'No new requests available right now.' :
-         activeFilter() === 'ASSIGNED' ? 'You have no active jobs.' :
-         activeFilter() === 'COMPLETED' ? 'No completed jobs yet.' :
-         'No pickup requests found.' }}
+      activeFilter() === 'PENDING' ? 'No new requests available right now.' :
+      activeFilter() === 'ASSIGNED' ? 'You have no active jobs.' :
+      activeFilter() === 'COMPLETED' ? 'No completed jobs yet.' :
+      'No pickup requests found.' }}
     </p>
   </div>
 
   <!-- Cards grid -->
   <div class="cards-grid" *ngIf="filtered().length > 0">
     <div [id]="'pickup-' + p.id" *ngFor="let p of filtered()" class="card-wrapper">
-      <app-pickup-card
-        [pickup]="p"
-        [loading]="updatingId() === p.id"
-        [showActions]="true"
-        (accept)="accept($event)">
+      <app-pickup-card [pickup]="p" [loading]="updatingId() === p.id" [showActions]="true" (accept)="accept($event)">
       </app-pickup-card>
 
-      <!-- Weigh & Pay button for ASSIGNED jobs -->
-      <button
-        *ngIf="p.status === 'ASSIGNED'"
-        class="btn-weigh-pay"
-        (click)="openPaymentDialog(p)"
+      <!-- Weigh & Pay button — only on jobs this collector has accepted -->
+      <button *ngIf="p.status === 'ASSIGNED'" class="btn-weigh-pay" (click)="openPaymentDialog(p)"
         [disabled]="updatingId() === p.id">
-        ⚖️ Weigh &amp; Process Payment
+        ⚖️ Weigh Waste
       </button>
     </div>
   </div>
 
 </ng-container>
 
-<!-- ── Accept / Quote dialog ── -->
-<div class="confirm-overlay" *ngIf="confirmingId()" (click)="cancelConfirm()">
+<!-- ── Accept confirm dialog ── -->
+<div class="confirm-overlay" *ngIf="confirmingPickup()" (click)="cancelConfirm()">
   <div class="confirm-dialog" (click)="$event.stopPropagation()">
     <div class="confirm-icon">✅</div>
     <h3>Accept This Job</h3>
-    <p>You are taking on this pickup. The payment will be calculated after you weigh the waste using the system's predefined rates.</p>
+    <p>
+      You will be assigned to this pickup. After collecting and weighing the waste,
+      Amount due will be automatically calculated using the system's predefined rates.
+    </p>
     <div class="confirm-actions" style="margin-top: 1.5rem;">
       <button class="confirm-btn confirm-btn--cancel" (click)="cancelConfirm()">Cancel</button>
-      <button class="confirm-btn confirm-btn--confirm" (click)="confirmAccept()">Accept Job</button>
+      <button class="confirm-btn confirm-btn--confirm" (click)="confirmAccept()" [disabled]="updatingId() !== null">
+        Accept Job
+      </button>
     </div>
   </div>
 </div>
@@ -122,31 +113,30 @@
 <div class="confirm-overlay" *ngIf="payingPickup()" (click)="closePaymentDialog()">
   <div class="confirm-dialog confirm-dialog--payment" (click)="$event.stopPropagation()">
     <div class="confirm-icon">⚖️</div>
-    <h3>Weigh &amp; Process Payment</h3>
-    <p>Enter the weight of the waste. The payment amount will be automatically calculated using the system rate.</p>
+    <h3>Weigh Waste</h3>
+    <p>Enter the actual weight of the waste. The amount is automatically calculated using the system rate.</p>
 
     <!-- System rate display -->
-    <div class="rate-display" *ngIf="payingPickup()">
-      <span class="rate-display__label">System rate for {{ payingPickup()!.wasteType }}</span>
-      <span class="rate-display__value">KES {{ pricePerKgForPickup(payingPickup()!) }}/kg</span>
+    <div class="rate-display">
+      <span class="rate-display__label">
+        System rate · {{ payingPickup()!.wasteType | titlecase }}
+      </span>
+      <span class="rate-display__value">
+        KES {{ pricePerKgForPickup(payingPickup()!) }}/kg
+      </span>
     </div>
 
     <!-- Weight input -->
     <div class="weight-field">
       <label class="weight-label">Waste Weight (kg)</label>
       <div class="weight-input-wrap">
-        <input
-          type="number"
-          class="weight-input"
-          placeholder="Enter weight in kg"
-          min="0.1"
-          step="0.1"
+        <input type="number" class="weight-input" placeholder="e.g. 12.5" min="0.1" step="0.1"
           (input)="onWeightInput($event)" />
         <span class="weight-unit">kg</span>
       </div>
     </div>
 
-    <!-- Calculated amount -->
+    <!-- Calculated breakdown -->
     <div class="calc-amount-box" *ngIf="calculatedAmt()">
       <div class="calc-row">
         <span>Weight</span>
@@ -164,11 +154,8 @@
 
     <div class="confirm-actions" style="margin-top: 1.5rem;">
       <button class="confirm-btn confirm-btn--cancel" (click)="closePaymentDialog()">Cancel</button>
-      <button
-        class="confirm-btn confirm-btn--confirm"
-        (click)="confirmPayment()"
-        [disabled]="!calculatedAmt()">
-        Confirm Payment &amp; Complete
+      <button class="confirm-btn confirm-btn--confirm" (click)="confirmPayment()" [disabled]="!calculatedAmt()">
+        Submit Weight
       </button>
     </div>
   </div>

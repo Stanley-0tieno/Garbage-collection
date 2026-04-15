@@ -97,10 +97,11 @@
         <span class="points-earned" *ngIf="pickup.pointsEarned">
           🏆 +{{ pickup.pointsEarned }} points earned
         </span>
-        <button *ngIf="pickup.status === 'ASSIGNED'" class="btn-sm btn-mark-complete"
+        <button *ngIf="pickup.status === 'COMPLETED' && pickup.paymentStatus === 'UNPAID'"
+          class="btn-sm btn-mark-complete"
           style="background: #10b981; color: white; border-radius: 4px; padding: 4px 8px; border: none; cursor: pointer; float: right;"
           (click)="initPayment(pickup.id)">
-          Mark Complete & Pay
+          Pay Collector
         </button>
       </div>
 
@@ -137,6 +138,13 @@
         <span style="font-weight: 500; color: #1fb141;">M-PESA (Simulated)</span>
         <span style="margin-left: auto; color: #6b7280; font-size: 0.85rem;">Pay via mobile money</span>
       </label>
+
+      <div *ngIf="paymentMethod() === 'MPESA'" style="margin-top: 8px;">
+        <label style="font-size: 0.85rem; font-weight: 500; color: #374151;">M-PESA Phone Number</label>
+        <input type="tel" [value]="phoneNumber()" (input)="phoneNumber.set($any($event.target).value)"
+          placeholder="e.g. 0712345678"
+          style="width: 100%; padding: 8px; margin-top: 4px; border: 1px solid #d1d5db; border-radius: 6px; box-sizing: border-box;">
+      </div>
     </div>
 
     <div style="margin-top: 1.5rem; display: flex; gap: 10px;">

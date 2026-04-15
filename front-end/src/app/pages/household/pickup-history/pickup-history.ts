@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
 import { AuthService } from '../../../services/api/auth.service';
 import { PickupService } from '../../../services/api/pickup.service';
+import { PaymentService } from '../../../services/api/payment.service';
 import { PickupRequest, PickupStatus } from '../../../models/pickup.model';
 
 type FilterStatus = 'ALL' | PickupStatus;
@@ -17,6 +18,7 @@ type FilterStatus = 'ALL' | PickupStatus;
 export class PickupHistoryComponent implements OnInit {
   private auth = inject(AuthService);
   private pickups = inject(PickupService);
+  private payments = inject(PaymentService);
 
   loading = signal(true);
   pickupList = signal<PickupRequest[]>([]);
@@ -25,6 +27,7 @@ export class PickupHistoryComponent implements OnInit {
   payingId = signal<string | null>(null);
   paymentMethod = signal<'CASH' | 'MPESA'>('CASH');
   processingPayment = signal(false);
+  phoneNumber = signal<string>('');
 
   readonly filters: { value: FilterStatus; label: string }[] = [
     { value: 'ALL', label: 'All' },
@@ -68,6 +71,7 @@ export class PickupHistoryComponent implements OnInit {
     if (!pickup) return;
     this.payingId.set(id);
     this.paymentMethod.set('CASH');
+    this.phoneNumber.set('');
   }
 
   setPaymentMethod(method: 'CASH' | 'MPESA'): void {
@@ -79,24 +83,75 @@ export class PickupHistoryComponent implements OnInit {
     if (!id) return;
     this.processingPayment.set(true);
 
-    // Simulate payment delay
-    const delay = this.paymentMethod() === 'MPESA' ? 1500 : 500;
-
-    setTimeout(() => {
-      this.pickups.updateStatus(id, 'COMPLETED').subscribe({
+    if (this.paymentMethod() === 'CASH') {
+      this.pickups.payCash(id).subscribe({
         next: updated => {
-          updated.paymentStatus = 'PAID';
           this.pickupList.update(list => list.map(p => p.id === updated.id ? updated : p));
           this.payingId.set(null);
           this.processingPayment.set(false);
-          alert('Pickup finalized. Thank you for your payment!');
+          alert('Cash payment recorded. You earned 50 points!');
         },
         error: () => {
-          alert('Failed to complete pickup.');
+          alert('Failed to complete cash payment.');
           this.processingPayment.set(false);
         }
       });
-    }, delay);
+    } else {
+      if (!this.phoneNumber()) {
+        alert('Please enter your M-PESA phone number.');
+        this.processingPayment.set(false);
+        return;
+      }
+
+      const pickup = this.pickupList().find(p => p.id === id);
+      if (!pickup || !pickup.amount) {
+        alert('Invalid pickup amount.');
+        this.processingPayment.set(false);
+        return;
+      }
+
+      this.payments.initiatePayment({
+        pickupId: id,
+        amount: pickup.amount,
+        phone: this.phoneNumber()
+      }).subscribe({
+        next: (res) => {
+          alert(res.message);
+
+          const pollInterval = setInterval(() => {
+            this.payments.checkStatus(res.checkoutRequestId).subscribe({
+              next: (statusRes) => {
+                if (statusRes.status === 'PAID') {
+                  clearInterval(pollInterval);
+                  this.payingId.set(null);
+                  this.processingPayment.set(false);
+                  this.pickupList.update(list => list.map(p => {
+                    if (p.id === id) return { ...p, paymentStatus: 'PAID', pointsEarned: 50 };
+                    return p;
+                  }));
+                  alert('M-PESA payment successful! You earned 50 points!');
+                } else if (statusRes.status === 'FAILED') {
+                  clearInterval(pollInterval);
+                  this.processingPayment.set(false);
+                  alert('Payment failed. Please try again.');
+                }
+              },
+              error: () => {
+                clearInterval(pollInterval);
+                this.processingPayment.set(false);
+                alert('Error checking payment status.');
+              }
+            });
+          }, 3000);
+
+          setTimeout(() => clearInterval(pollInterval), 60000);
+        },
+        error: err => {
+          alert(err.error?.detail || err.message || 'Failed to initiate M-PESA payment.');
+          this.processingPayment.set(false);
+        }
+      });
+    }
   }
 
   cancelPayment(): void {

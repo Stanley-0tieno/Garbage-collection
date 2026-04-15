@@ -7,6 +7,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.core.config import settings
 from app.models.pickup import Pickup
 from app.models.notification import Notification
+from app.models.user import User
 from app.schemas.payment import STKPushRequest
 
 async def get_daraja_token():
@@ -90,7 +91,13 @@ async def handle_mpesa_callback(payload: dict, db: AsyncSession):
             
         if result_code == 0:
             pickup.payment_status = "PAID"
-            notif = Notification(user_id=pickup.user_id, type="payment_success", title="Payment Successful", message=f"Payment for your pickup was confirmed.", pickup_id=pickup.id)
+            pickup.points_earned = 50
+            
+            household = await db.get(User, pickup.user_id)
+            if household:
+                household.points = (household.points or 0) + 50
+                
+            notif = Notification(user_id=pickup.user_id, type="payment_success", title="Payment Successful", message=f"Payment for your pickup was confirmed. You earned 50 points!", pickup_id=pickup.id)
             db.add(notif)
         else:
             pickup.payment_status = "FAILED"

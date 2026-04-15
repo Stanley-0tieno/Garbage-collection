@@ -18,16 +18,23 @@ class User(Base):
     email:      Mapped[str]  = mapped_column(String(255), unique=True, index=True)
     phone:      Mapped[str]  = mapped_column(String(30))
     password_hash: Mapped[str] = mapped_column(String(255))
+
     role: Mapped[str] = mapped_column(
-        Enum("household", "collector", "admin" ,name="user_role"), nullable=False
+        Enum("household", "collector", "admin", name="user_role"), nullable=False
     )
-    national_id: Mapped[str|None] = mapped_column(String(50), nullable=True)
-    vehicle_number_plate: Mapped[str|None] = mapped_column(String(20), nullable=True)
-    points: Mapped[int] = mapped_column(Integer, default=0)
+
+    # Household-specific
+    national_id: Mapped[str | None] = mapped_column(String(50), nullable=True)
+
+    # Collector-specific
+    business_reg_number:  Mapped[str | None] = mapped_column(String(100), nullable=True)
+    vehicle_number_plate: Mapped[str | None] = mapped_column(String(20),  nullable=True)
+
+    points:    Mapped[int]  = mapped_column(Integer, default=0)
     is_active: Mapped[bool] = mapped_column(Boolean, default=True)
 
-    is_verified:        Mapped[bool]     = mapped_column(Boolean, default=False)
-    verification_token: Mapped[str|None] = mapped_column(String(255), nullable=True)
+    is_verified:        Mapped[bool]      = mapped_column(Boolean, default=False)
+    verification_token: Mapped[str | None] = mapped_column(String(255), nullable=True)
 
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), default=lambda: datetime.now(timezone.utc)
