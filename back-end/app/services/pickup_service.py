@@ -24,9 +24,6 @@ def _calc_amount(waste_type: str, weight_kg: float) -> float:
     rate = WASTE_PRICES_PER_KG.get(primary, 5.0)
     return round(rate * weight_kg, 2)
 
-
-# ── Service functions ──────────────────────────────────────────────────────
-
 async def create_pickup(
     payload: CreatePickupRequest,
     user_id: str,
