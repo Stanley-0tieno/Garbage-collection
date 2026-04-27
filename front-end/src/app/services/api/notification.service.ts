@@ -4,12 +4,14 @@ import { interval, Subscription } from 'rxjs';
 import { switchMap, catchError } from 'rxjs/operators';
 import { of } from 'rxjs';
 import { Notification } from '../../models/notification.model';
+import { AuthService } from './auth.service';
 
 const API = 'http://localhost:8000/api';
 
 @Injectable({ providedIn: 'root' })
 export class NotificationService {
   private http = inject(HttpClient);
+  private auth = inject(AuthService);
 
   notifications = signal<Notification[]>([]);
   unreadCount = signal(0);
@@ -18,11 +20,20 @@ export class NotificationService {
   private pollSub: Subscription | null = null;
 
   startPolling(): void {
+    if (this.pollSub) return;
+    if (!this.auth.getToken()) return; // Don't poll if logged out
+
     this.fetchNotifications();
     this.pollSub = interval(30_000).pipe(
-      switchMap(() => this.http.get<Notification[]>(`${API}/notifications`).pipe(
-        catchError(() => of([]))
-      ))
+      switchMap(() => {
+        if (!this.auth.getToken()) {
+          this.stopPolling();
+          return of([]);
+        }
+        return this.http.get<Notification[]>(`${API}/notifications`).pipe(
+          catchError(() => of([]))
+        );
+      })
     ).subscribe(data => this.setNotifications(data));
   }
 

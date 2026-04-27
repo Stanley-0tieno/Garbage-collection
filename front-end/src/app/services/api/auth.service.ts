@@ -44,6 +44,20 @@ export class AuthService {
       .pipe(catchError(err => throwError(() => err)));
   }
 
+  updateProfile(payload: { firstName: string, lastName: string, phone: string }): Observable<User> {
+    return this.http.put<User>(`${API_URL}/auth/me`, payload).pipe(
+      tap(updatedUser => {
+        const storedUser = this.loadUser();
+        if (storedUser) {
+          const mergedUser = { ...storedUser, ...updatedUser };
+          localStorage.setItem(USER_KEY, JSON.stringify(mergedUser));
+          this._currentUser.set(mergedUser);
+        }
+      }),
+      catchError(err => throwError(() => err))
+    );
+  }
+
   logout(): void {
     localStorage.removeItem(TOKEN_KEY);
     localStorage.removeItem(USER_KEY);
